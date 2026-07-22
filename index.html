@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DRIFTWATCH — Pre/Post Upgrade Change Advisor (NX-OS)</title>
+<style>
+:root{
+  --bg:#0e1621; --panel:#16202e; --raised:#1c2837; --hair:#263241;
+  --tx:#e2e9f0; --muted:#8493a4; --faint:#5a6878;
+  --brass:#c9a552; --brass-dim:#6e5e30;
+  --crit:#ef5f6b; --crit-bg:#2a1519; --crit-bd:#4a232b;
+  --add:#4cc372; --add-bg:#0f2318; --add-bd:#1f4230;
+  --warn:#e79a45; --warn-bg:#2a2013; --warn-bd:#4a3a1f;
+  --info:#5aa0e0; --info-bg:#132234; --info-bd:#24425f;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);line-height:1.5;
+  font-feature-settings:"tnum" 1;}
+.wrap{max-width:1080px;margin:0 auto;padding:22px 20px 80px}
+a{color:var(--brass)}
+::selection{background:#2c3a4c}
+
+/* header */
+.top{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;
+  border-bottom:1px solid var(--hair);padding-bottom:18px;margin-bottom:22px}
+.seal{flex:0 0 auto;margin-top:2px}
+.brand h1{font-size:19px;letter-spacing:.14em;margin:0;font-weight:700}
+.brand .sub{color:var(--muted);font-size:12.5px;letter-spacing:.02em;margin-top:2px}
+.legend{margin-left:auto;font-size:11px;color:var(--muted);border:1px solid var(--hair);
+  border-radius:8px;padding:9px 11px;max-width:340px}
+.legend b{color:var(--tx);font-weight:600;letter-spacing:.04em}
+.legend .row{display:flex;gap:7px;align-items:baseline;margin-top:4px}
+.stamp-mini{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;padding:1px 6px;border-radius:4px;
+  border:1px solid;white-space:nowrap}
+.st-ok{color:var(--add);border-color:var(--add-bd);background:var(--add-bg)}
+.st-vr{color:var(--warn);border-color:var(--warn-bd);background:var(--warn-bg)}
+
+/* input */
+.io{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:720px){.io{grid-template-columns:1fr}}
+.pane{background:var(--panel);border:1px solid var(--hair);border-radius:11px;overflow:hidden;display:flex;flex-direction:column}
+.pane header{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--hair);
+  font-size:11px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.pane header .dot{width:7px;height:7px;border-radius:50%}
+.pane.pre header .dot{background:var(--info)} .pane.post header .dot{background:var(--brass)}
+.pane header .tools{margin-left:auto;display:flex;gap:5px}
+.tbtn{font-family:var(--sans);font-size:10.5px;letter-spacing:.03em;color:var(--muted);background:transparent;
+  border:1px solid var(--hair);border-radius:6px;padding:3px 8px;cursor:pointer;text-transform:none}
+.tbtn:hover{color:var(--tx);border-color:var(--brass-dim)}
+textarea{width:100%;min-height:210px;resize:vertical;background:#0b131d;color:#cdd8e4;border:0;outline:0;
+  font-family:var(--mono);font-size:12px;line-height:1.45;padding:12px;tab-size:2}
+textarea::placeholder{color:var(--faint)}
+
+.runbar{display:flex;align-items:center;gap:14px;margin:16px 0 6px;flex-wrap:wrap}
+.run{font-family:var(--sans);font-weight:600;letter-spacing:.03em;font-size:14px;color:#10161f;
+  background:var(--brass);border:0;border-radius:9px;padding:11px 22px;cursor:pointer}
+.run:hover{filter:brightness(1.07)} .run:active{transform:translateY(1px)}
+.run:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.hint{color:var(--muted);font-size:12px}
+.hint b{color:var(--tx)}
+
+/* summary */
+.summary{display:none;margin-top:24px}
+.summary.show{display:block;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.counts{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.chip{font-size:12px;font-weight:600;letter-spacing:.03em;padding:5px 11px;border-radius:8px;border:1px solid}
+.c-crit{color:var(--crit);border-color:var(--crit-bd);background:var(--crit-bg)}
+.c-warn{color:var(--warn);border-color:var(--warn-bd);background:var(--warn-bg)}
+.c-info{color:var(--info);border-color:var(--info-bd);background:var(--info-bg)}
+.c-cmp{color:var(--muted);border-color:var(--hair)}
+.signoff{margin-left:auto;font-size:12px;color:var(--muted)}
+.signoff b{color:var(--tx)}
+
+/* finding card */
+.card{background:var(--panel);border:1px solid var(--hair);border-left:3px solid var(--hair);
+  border-radius:11px;margin-top:14px;overflow:hidden}
+.card.sev-critical{border-left-color:var(--crit)} .card.sev-warning{border-left-color:var(--warn)}
+.card.sev-info{border-left-color:var(--info)} .card.sev-correlation{border-left-color:var(--brass)}
+.card.decided-accept{opacity:.62} .card.decided-rollback{opacity:.62}
+.chd{display:flex;align-items:flex-start;gap:11px;padding:15px 17px 8px}
+.sev{font-family:var(--mono);font-size:10px;letter-spacing:.08em;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid;white-space:nowrap;margin-top:2px}
+.s-critical{color:var(--crit);border-color:var(--crit-bd);background:var(--crit-bg)}
+.s-warning{color:var(--warn);border-color:var(--warn-bd);background:var(--warn-bg)}
+.s-info{color:var(--info);border-color:var(--info-bd);background:var(--info-bg)}
+.s-correlation{color:var(--brass);border-color:var(--brass-dim);background:#241f10}
+.ctitle{flex:1;font-size:15.5px;font-weight:600;line-height:1.35}
+.did{color:var(--faint);font-family:var(--mono);font-size:11px;letter-spacing:.06em;margin-top:3px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;padding:0 17px 12px 17px}
+.tag{font-family:var(--mono);font-size:10px;color:var(--muted);background:#111a25;border:1px solid var(--hair);
+  border-radius:5px;padding:2px 7px}
+.sec{padding:0 17px}
+.eyebrow{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);
+  margin:14px 0 7px;display:flex;align-items:center;gap:9px}
+.diff{margin:0 0 4px;background:#0b131d;border:1px solid var(--hair);border-radius:8px;padding:10px 0;
+  font-family:var(--mono);font-size:12px;line-height:1.5;overflow-x:auto}
+.diff .ln{display:block;padding:0 13px;white-space:pre}
+.diff .del{color:#f4909a;background:var(--crit-bg)} .diff .del::before{content:"- "}
+.diff .add{color:#7fd89b;background:var(--add-bg)} .diff .add::before{content:"+ "}
+.diff .ctx{color:var(--muted)} .diff .ctx::before{content:"  "}
+.diff .gap{color:var(--faint)}
+.why{color:#cdd8e4;font-size:13.5px}
+.srcline{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 2px}
+.src{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;color:var(--brass);
+  border:1px solid var(--brass-dim);background:#221d0f;border-radius:5px;padding:2px 8px}
+.stamp{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;font-weight:700;padding:3px 10px;border-radius:5px;border:1px solid}
+.stamp.ok{color:var(--add);border-color:var(--add-bd);background:var(--add-bg)}
+.stamp.vr{color:var(--warn);border-color:var(--warn-bd);background:var(--warn-bg)}
+.note{font-size:12px;color:var(--muted);border-left:2px solid var(--warn-bd);padding:6px 0 6px 11px;margin:9px 0 2px}
+.note b{color:var(--warn)}
+.fixblk{background:#0b131d;border:1px solid var(--hair);border-radius:8px;padding:11px 13px;margin:3px 0 4px;
+  font-family:var(--mono);font-size:12px;line-height:1.55;white-space:pre;overflow-x:auto;color:#cfe3d6}
+.fixblk .kw{color:var(--brass)} .fixblk .cm{color:var(--faint)}
+.verify{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin:2px 0 4px;padding-left:2px}
+.verify .vh{color:var(--faint);letter-spacing:.06em}
+.verify li{margin:2px 0;list-style:none}
+.fixtype{font-family:var(--mono);font-size:10px;letter-spacing:.05em;padding:2px 7px;border-radius:4px;border:1px solid;margin-left:auto}
+.ft-det{color:var(--add);border-color:var(--add-bd);background:var(--add-bg)}
+.ft-inv{color:var(--info);border-color:var(--info-bd);background:var(--info-bg)}
+.actions{display:flex;gap:9px;padding:13px 17px 16px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--hair);margin-top:12px}
+.act{font-family:var(--sans);font-size:12px;letter-spacing:.02em;background:transparent;border:1px solid var(--hair);
+  color:var(--muted);border-radius:7px;padding:6px 13px;cursor:pointer}
+.act:hover{color:var(--tx);border-color:var(--brass-dim)}
+.act.on-accept{color:var(--add);border-color:var(--add-bd);background:var(--add-bg)}
+.act.on-flag{color:var(--warn);border-color:var(--warn-bd);background:var(--warn-bg)}
+.act.on-rollback{color:var(--crit);border-color:var(--crit-bd);background:var(--crit-bg)}
+.decision{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.05em}
+.foot{margin-top:34px;padding-top:16px;border-top:1px solid var(--hair);color:var(--faint);font-size:11.5px;line-height:1.6}
+.foot b{color:var(--muted)}
+.empty{color:var(--faint);font-size:13px;text-align:center;padding:34px 0 8px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <svg class="seal" width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <polygon points="17,2 27,7 32,17 27,27 17,32 7,27 2,17 7,7" fill="none" stroke="#c9a552" stroke-width="1.5"/>
+      <polygon points="17,7 24,10.5 27.5,17 24,23.5 17,27 10,23.5 6.5,17 10,10.5" fill="#221d0f" stroke="#6e5e30" stroke-width="1"/>
+      <path d="M12 17.5 l3.2 3.2 L23 12.5" fill="none" stroke="#c9a552" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="brand">
+      <h1>DRIFTWATCH</h1>
+      <div class="sub">Pre / Post Upgrade Change Advisor &middot; Cisco NX-OS</div>
+    </div>
+    <div class="legend">
+      <b>EVIDENCE MODEL</b> — every finding states its source and one of two stamps:
+      <div class="row"><span class="stamp-mini st-ok">VERIFIED BY DESIGN</span><span>protocol / design-guide fact — deterministic.</span></div>
+      <div class="row"><span class="stamp-mini st-vr">VERIFY REQUIRED</span><span>engineer must confirm on Bug Search Tool / release notes.</span></div>
+    </div>
+  </div>
+
+  <div class="io">
+    <div class="pane pre">
+      <header><span class="dot"></span>Pre-upgrade capture
+        <span class="tools">
+          <button class="tbtn" data-load="pre">Load sample</button>
+          <button class="tbtn" data-upload="pre">Upload .txt</button>
+          <button class="tbtn" data-clear="pre">Clear</button>
+        </span>
+      </header>
+      <textarea id="pre" spellcheck="false" placeholder="Paste the full pre-upgrade capture here.
+Include the command echoes, e.g.:
+
+LEAF-01# show running-config
+ ...
+LEAF-01# show isis adjacency
+ ...
+
+Recognised: running-config, ip route (+vrf all), isis adjacency,
+bgp vrf all all summary, nve peers, vpc, interface status, module,
+lldp neighbors, ip arp, mac address-table, version, boot, and more."></textarea>
+    </div>
+    <div class="pane post">
+      <header><span class="dot"></span>Post-upgrade capture
+        <span class="tools">
+          <button class="tbtn" data-load="post">Load sample</button>
+          <button class="tbtn" data-upload="post">Upload .txt</button>
+          <button class="tbtn" data-clear="post">Clear</button>
+        </span>
+      </header>
+      <textarea id="post" spellcheck="false" placeholder="Paste the full post-upgrade capture here (same commands as pre)."></textarea>
+    </div>
+  </div>
+
+  <div class="runbar">
+    <button class="run" id="run">Compare pre &amp; post</button>
+    <span class="hint" id="hint">Load the sample in both panes to see a worked example, or paste your own capture.</span>
+  </div>
+
+  <input type="file" id="filepick" accept=".txt,.log,.cfg,text/plain" style="display:none">
+
+  <div class="summary" id="summary">
+    <div class="counts" id="counts"></div>
+    <div id="results"></div>
+  </div>
+
+  <div class="foot">
+    <b>Prototype (Step 1).</b> Parsing and diff run entirely in your browser — nothing is uploaded to any server, so configs stay on your machine.
+    Analysis is produced by an encoded rule base derived from Cisco design guides, protocol standards (e.g. RFC 7348), bug lists and release notes — not by guesswork.
+    Version-specific causes are marked <b>VERIFY REQUIRED</b> and must be confirmed by the engineer on the Cisco Bug Search Tool / target-release notes.
+    No change is ever applied automatically — the engineer reviews each finding and signs off.
+    <br><br>Step 2 replaces the built-in parsers with Cisco pyATS/Genie's 2700+ parsers behind a small internal service, keeping this same interface and evidence model.
+  </div>
+</div>
+
+<script>
+/* ===================== ENGINE (tested in Node) ===================== */
+/* ============================================================================
+   DRIFTWATCH ENGINE  -  NX-OS Pre/Post Upgrade Comparison
+   ----------------------------------------------------------------------------
+   Pure logic, no DOM. Runs in Node (tests) and browser (embedded in the page).
+
+   Pipeline:
+     splitCapture(text)  -> { command: body, ... }
+     compareAll(pre,post) -> [ finding, ... ]  (per-command diffs + analysis)
+     correlate(findings)  -> maybe prepends a root-cause correlation finding
+
+   A "finding" carries the config/state DIFF plus an ENGINEERING ANALYSIS
+   (why + source + verified flag) and a RECOMMENDED FIX. The "why" is produced
+   by an encoded rule base derived from protocol design guides, not by guessing;
+   version-specific attributions are always flagged "verify-required".
+   ========================================================================== */
+
+/* ---------- known commands (from the operator's capture list) ------------- */
+const KNOWN_COMMANDS = [
+  "show running-config",
+  "show ip arp",
+  "show module",
+  "show ip interface brief",
+  "show mac address-table",
+  "show version",
+  "show inventory",
+  "show boot",
+  "show ip route vrf all",
+  "show ip route",
+  "show isis adjacency",
+  "show bgp vrf all all summary",
+  "show isis database detail",
+  "show vpc",
+  "show nve peers",
+  "show interface status",
+  "show interface description",
+  "show lldp neighbors",
+  "show clock",
+];
+
+function normCmd(s) {
+  return s.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+/* Split a full capture into { command: body }. Detects a command boundary when
+   a line (optionally after a "hostname# " prompt) equals a known command. */
+function splitCapture(text) {
+  const sections = {};
+  if (!text) return sections;
+  const lines = text.split(/\r?\n/);
+  const knownNorm = new Set(KNOWN_COMMANDS.map(normCmd));
+  let current = null;
+  for (const raw of lines) {
+    // strip an optional prompt like "LEAF-01# " or "switch(config)# "
+    const stripped = raw.replace(/^\s*\S+?[#>]\s*/, "").trimEnd();
+    const cand = normCmd(stripped);
+    if (knownNorm.has(cand)) {
+      current = cand;
+      if (!(current in sections)) sections[current] = [];
+      continue;
+    }
+    if (current) sections[current].push(raw);
+  }
+  const out = {};
+  for (const k of Object.keys(sections)) out[k] = sections[k].join("\n").trim();
+  return out;
+}
+
+/* ---------- generic line diff (LCS) --------------------------------------- */
+function lcsDiff(preLines, postLines) {
+  const n = preLines.length, m = postLines.length;
+  const dp = Array.from({ length: n + 1 }, () => new Int32Array(m + 1));
+  for (let i = n - 1; i >= 0; i--)
+    for (let j = m - 1; j >= 0; j--)
+      dp[i][j] = preLines[i] === postLines[j]
+        ? dp[i + 1][j + 1] + 1
+        : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  const rows = [];
+  let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (preLines[i] === postLines[j]) { rows.push({ type: "ctx", text: preLines[i] }); i++; j++; }
+    else if (dp[i + 1][j] >= dp[i][j + 1]) { rows.push({ type: "del", text: preLines[i] }); i++; }
+    else { rows.push({ type: "add", text: postLines[j] }); j++; }
+  }
+  while (i < n) rows.push({ type: "del", text: preLines[i++] });
+  while (j < m) rows.push({ type: "add", text: postLines[j++] });
+  return rows;
+}
+
+/* keep a compact diff: context lines only near changes */
+function compactDiff(rows, pad = 1) {
+  const keep = new Array(rows.length).fill(false);
+  rows.forEach((r, idx) => {
+    if (r.type !== "ctx") for (let k = idx - pad; k <= idx + pad; k++) if (k >= 0 && k < rows.length) keep[k] = true;
+  });
+  const out = [];
+  let gap = false;
+  rows.forEach((r, idx) => {
+    if (keep[idx]) { out.push(r); gap = false; }
+    else if (!gap) { out.push({ type: "gap", text: "  ...  " }); gap = true; }
+  });
+  return out;
+}
+
+/* ---------- small parse helpers ------------------------------------------- */
+const splitBlocks = (cfg) => {
+  // running-config -> { global:[], interfaces:{name:[lines]} }
+  const interfaces = {}; const global = []; let cur = null;
+  for (const raw of (cfg || "").split(/\r?\n/)) {
+    if (!raw.trim()) continue;
+    if (/^interface\s+\S+/i.test(raw)) { cur = raw.trim(); interfaces[cur] = interfaces[cur] || []; }
+    else if (/^\s+\S/.test(raw) && cur) interfaces[cur].push(raw.trim());
+    else { cur = null; global.push(raw.trim()); }
+  }
+  return { global, interfaces };
+};
+
+/* ========================================================================== */
+/*  KNOWLEDGE BASE HELPERS  (produce why + source + verified + fix)           */
+/* ========================================================================== */
+const SRC = {
+  DESIGN: "Design Guide",       // RFC / Cisco design guide - deterministic
+  PROTO: "Protocol Logic",      // deducible from how the protocol works
+  BUGS: "Bug List",             // must be confirmed on Cisco Bug Search Tool
+  NOTES: "Release Notes",       // must be confirmed in target-release notes
+  DIFF: "Config Diff",          // the change itself is the evidence
+};
+
+/* ========================================================================== */
+/*  PER-COMMAND COMPARATORS                                                    */
+/*  Each returns an array of findings for that command.                        */
+/* ========================================================================== */
+
+function cmpRunningConfig(pre, post) {
+  const a = splitBlocks(pre), b = splitBlocks(post);
+  const findings = [];
+  const names = [...new Set([...Object.keys(a.interfaces), ...Object.keys(b.interfaces)])];
+
+  for (const name of names) {
+    const pl = a.interfaces[name] || [], ql = b.interfaces[name] || [];
+    const removed = pl.filter((l) => !ql.includes(l));
+    const added = ql.filter((l) => !pl.includes(l));
+    if (!removed.length && !added.length) continue;
+
+    // detect MTU change specifically
+    const mtuPre = (pl.find((l) => /^mtu\s+\d+/i.test(l)) || "").match(/\d+/);
+    const mtuPost = (ql.find((l) => /^mtu\s+\d+/i.test(l)) || "").match(/\d+/);
+    const isVtepUnderlay = pl.concat(ql).some((l) => /ip router isis|ip address/i.test(l));
+
+    const diffRows = [{ type: "ctx", text: name }];
+    removed.forEach((l) => diffRows.push({ type: "del", text: "  " + l }));
+    added.forEach((l) => diffRows.push({ type: "add", text: "  " + l }));
+
+    if (mtuPre && mtuPost && +mtuPre[0] !== +mtuPost[0] && +mtuPost[0] < 1600) {
+      findings.push({
+        cmd: "show running-config",
+        severity: "critical",
+        title: `Fabric uplink MTU reduced below VXLAN requirement on ${name}`,
+        tags: ["interface", "underlay", "vxlan-mtu"],
+        diff: diffRows,
+        why: {
+          text:
+            `The interface MTU on ${name} changed from ${mtuPre[0]} to ${mtuPost[0]}. VXLAN encapsulation adds ` +
+            `50-54 bytes of outer MAC/IP/UDP/VXLAN headers to every frame (RFC 7348), so a ${mtuPost[0]}-byte ` +
+            `underlay can no longer carry full-size overlay frames between VTEPs. Additionally, IS-IS pads its ` +
+            `hello PDUs to the interface MTU by default, so this reset can also break the IS-IS adjacency on ` +
+            `this link where the neighbor is still at the higher MTU.`,
+          source: SRC.DESIGN,
+          verified: true,
+          note:
+            `The DIFF itself (${mtuPre[0]}->${mtuPost[0]}) and the encapsulation math are verified by design. ` +
+            `WHETHER this MTU reset is an expected behaviour of the specific target release/platform is NOT a ` +
+            `known fact - confirm against the target-release notes and Cisco Bug Search Tool before assuming it ` +
+            `is documented.`,
+          verifyRequired: true,
+        },
+        fix: {
+          type: "deterministic",
+          intro: `Restore the pre-upgrade MTU on the affected uplink(s). This is a config-loss restore, so the fix is the removed line itself:`,
+          commands: [name, `  mtu ${mtuPre[0]}`],
+          verify: [
+            `show interface ${name.replace(/^interface\s+/i, "")} | include MTU`,
+            "show isis adjacency",
+            "show nve peers",
+          ],
+        },
+      });
+    } else {
+      // generic per-interface config drift
+      findings.push({
+        cmd: "show running-config",
+        severity: removed.length ? "warning" : "info",
+        title: `Configuration ${removed.length ? "removed" : "added"} on ${name}`,
+        tags: ["interface", "config-drift"],
+        diff: diffRows,
+        why: {
+          text: `${removed.length ? removed.length + " line(s) present before are missing now" : added.length + " new line(s) appeared"} on ${name}. During an upgrade, lines that disappear are usually unintended drift.`,
+          source: SRC.DIFF,
+          verified: true,
+          verifyRequired: false,
+        },
+        fix: removed.length
+          ? { type: "deterministic", intro: "If this change was unintended, restore the removed lines:", commands: [name, ...removed.map((l) => "  " + l)], verify: [`show running-config interface ${name.replace(/^interface\s+/i, "")}`] }
+          : { type: "investigate", intro: "New lines appeared. Confirm they were intended for this change window.", commands: [], verify: [] },
+      });
+    }
+  }
+  return findings;
+}
+
+function parseIsisAdj(txt) {
+  // System ID  SNPA  Level  State  Hold Time  Interface
+  const out = {};
+  for (const line of (txt || "").split(/\r?\n/)) {
+    const m = line.match(/^\s*(\S+)\s+\S+\s+(\d+)\s+(\S+)\s+\S+\s+(\S+)\s*$/);
+    if (m && !/System\s+ID/i.test(line)) out[m[1]] = { level: m[2], state: m[3].toUpperCase(), intf: m[4] };
+  }
+  return out;
+}
+function cmpIsisAdj(pre, post) {
+  const a = parseIsisAdj(pre), b = parseIsisAdj(post), findings = [];
+  for (const id of new Set([...Object.keys(a), ...Object.keys(b)])) {
+    const p = a[id], q = b[id];
+    if (p && !q) {
+      findings.push(mk("show isis adjacency", "critical", `IS-IS underlay adjacency to ${id} is DOWN`, ["underlay", "isis", "adjacency"],
+        [{ type: "del", text: `${id}  Level ${p.level}  UP  ${p.intf}` }, { type: "add", text: `${id}  (adjacency lost)` }],
+        `The IS-IS adjacency to ${id} on ${p.intf} was UP before the upgrade and is now gone. Because the underlay carries VTEP loopback reachability, losing this adjacency breaks reachability to everything learned via ${id}. A very common trigger is an MTU mismatch on ${p.intf} (IS-IS pads hellos to MTU), so correlate with any MTU change on that interface.`,
+        SRC.PROTO, true, false,
+        { type: "investigate", intro: `Confirm L1/L2 on ${p.intf}, check for an MTU mismatch, and verify IS-IS auth/net matches the neighbor:`, commands: [], verify: [`show isis adjacency`, `show interface ${p.intf} | include MTU`, `show isis interface ${p.intf}`] }));
+    } else if (p && q && p.state !== q.state) {
+      findings.push(mk("show isis adjacency", "warning", `IS-IS adjacency to ${id} state ${p.state} -> ${q.state}`, ["underlay", "isis"],
+        [{ type: "ctx", text: id }, { type: "del", text: `state ${p.state}` }, { type: "add", text: `state ${q.state}` }],
+        `Adjacency to ${id} is no longer full UP. Underlay instability affects overlay reachability.`, SRC.PROTO, true, false,
+        { type: "investigate", intro: "Check the link and IS-IS timers/MTU.", commands: [], verify: [`show isis adjacency detail`] }));
+    }
+  }
+  return findings;
+}
+
+function parseBgpSummary(txt) {
+  // Neighbor  V  AS  MsgRcvd MsgSent TblVer InQ OutQ Up/Down State/PfxRcd
+  const out = {};
+  for (const line of (txt || "").split(/\r?\n/)) {
+    const m = line.match(/^\s*(\d+\.\d+\.\d+\.\d+)\s+\d+\s+\d+\s+\d+\s+\d+\s+\S+\s+\d+\s+\d+\s+\S+\s+(\S+)\s*$/);
+    if (m) out[m[1]] = m[2]; // last col = State/PfxRcd (number = established)
+  }
+  return out;
+}
+function cmpBgpSummary(pre, post) {
+  const a = parseBgpSummary(pre), b = parseBgpSummary(post), findings = [];
+  const down = (v) => v === undefined || !/^\d+$/.test(v);
+  for (const ip of new Set([...Object.keys(a), ...Object.keys(b)])) {
+    const p = a[ip], q = b[ip];
+    if (p === undefined || q === undefined) continue;
+    if (down(q) && !down(p)) {
+      findings.push(mk("show bgp vrf all all summary", "critical", `BGP overlay session to ${ip} is DOWN (${q})`, ["overlay", "bgp-evpn", "session"],
+        [{ type: "del", text: `${ip}  Established  ${p} prefixes` }, { type: "add", text: `${ip}  ${q}` }],
+        `The BGP session to ${ip} was Established (${p} prefixes) and is now '${q}'. If ${ip} is a spine/route-reflector loopback, this is very likely a downstream effect of losing underlay reachability to that loopback - correlate with IS-IS adjacency and MTU findings before touching BGP itself.`,
+        SRC.PROTO, true, false,
+        { type: "investigate", intro: `Check underlay reachability to ${ip}, then the BGP session:`, commands: [], verify: [`show ip route ${ip}`, `show bgp l2vpn evpn summary`, `show bgp vrf all all summary`] }));
+    } else if (/^\d+$/.test(p) && /^\d+$/.test(q)) {
+      const drop = +p - +q;
+      if (drop > 0 && drop >= Math.max(1, Math.floor(+p * 0.15))) {
+        findings.push(mk("show bgp vrf all all summary", "warning", `BGP prefixes from ${ip} dropped ${p} -> ${q}`, ["overlay", "bgp-evpn"],
+          [{ type: "ctx", text: ip }, { type: "del", text: `${p} prefixes` }, { type: "add", text: `${q} prefixes` }],
+          `Prefix count from ${ip} fell by ${drop}. Some EVPN routes were withdrawn - this frequently pairs with a lost NVE peer (a withdrawn leaf shows up here as a prefix drop).`,
+          SRC.PROTO, true, false,
+          { type: "investigate", intro: "Identify which VNIs/hosts disappeared and correlate with NVE peers.", commands: [], verify: [`show bgp l2vpn evpn`, `show nve peers`] }));
+      }
+    }
+  }
+  return findings;
+}
+
+function parseNvePeers(txt) {
+  const out = {};
+  for (const line of (txt || "").split(/\r?\n/)) {
+    const m = line.match(/^\s*nve\d+\s+(\d+\.\d+\.\d+\.\d+)\s+(\S+)/i);
+    if (m) out[m[1]] = m[2];
+  }
+  return out;
+}
+function cmpNvePeers(pre, post) {
+  const a = parseNvePeers(pre), b = parseNvePeers(post), findings = [];
+  for (const ip of new Set([...Object.keys(a), ...Object.keys(b)])) {
+    const p = a[ip], q = b[ip];
+    if (p && !q) {
+      findings.push(mk("show nve peers", "critical", `VXLAN VTEP peer ${ip} is no longer present`, ["overlay", "vxlan", "nve"],
+        [{ type: "del", text: `nve1  ${ip}  ${p}` }, { type: "add", text: `nve1  ${ip}  (peer lost)` }],
+        `Remote VTEP ${ip} was a peer before the upgrade and is gone now, so hosts behind that leaf are unreachable over the overlay. This is a consequence, not a config item - it usually means that leaf's EVPN routes are no longer received, often because underlay reachability to a spine was lost.`,
+        SRC.PROTO, true, false,
+        { type: "investigate", intro: `Check underlay reachability and whether EVPN routes from ${ip} are present:`, commands: [], verify: [`show ip route ${ip}`, `show bgp l2vpn evpn | include ${ip}`, `show nve peers`] }));
+    }
+  }
+  return findings;
+}
+
+function parseIntfStatus(txt) {
+  const out = {};
+  for (const line of (txt || "").split(/\r?\n/)) {
+    const m = line.match(/^\s*(Eth\S+|Po\S+|mgmt\S+)\s+(.*?)\s{2,}(connected|notconnect|disabled|sfpAbsent|xcvrAbsen\S*|linkFlapE\S*|err\S*)\s+(\S+)/i);
+    if (m) out[m[1]] = { status: m[3].toLowerCase(), vlan: m[4] };
+  }
+  return out;
+}
+function cmpIntfStatus(pre, post) {
+  const a = parseIntfStatus(pre), b = parseIntfStatus(post), findings = [];
+  for (const port of new Set([...Object.keys(a), ...Object.keys(b)])) {
+    const p = a[port], q = b[port];
+    if (p && q && p.status !== q.status) {
+      const wentDown = p.status === "connected" && q.status !== "connected";
+      findings.push(mk("show interface status", wentDown ? "critical" : "info", `${port} status ${p.status} -> ${q.status}`, ["interface", "l1"],
+        [{ type: "ctx", text: port }, { type: "del", text: `status ${p.status}` }, { type: "add", text: `status ${q.status}` }],
+        wentDown
+          ? `${port} was connected before the upgrade and is now ${q.status}. A physical/data-plane port went down across the change.`
+          : `${port} status changed to ${q.status}.`,
+        SRC.DIFF, true, false,
+        { type: "investigate", intro: `Check the port and its transceiver/neighbor:`, commands: [], verify: [`show interface ${port}`, `show interface ${port} transceiver`] }));
+    }
+  }
+  return findings;
+}
+
+/* generic "list of KV lines" comparator used for the simpler tables */
+function cmpGeneric(cmd, pre, post, opts = {}) {
+  const pl = (pre || "").split(/\r?\n/).filter((l) => l.trim());
+  const ql = (post || "").split(/\r?\n/).filter((l) => l.trim());
+  const rows = compactDiff(lcsDiff(pl, ql));
+  const changed = rows.some((r) => r.type === "del" || r.type === "add");
+  if (!changed) return [];
+  return [mk(cmd, opts.severity || "info", opts.title || `Output changed: ${cmd}`, opts.tags || ["diff"],
+    rows,
+    opts.why || `The output of "${cmd}" differs between pre and post. Review the change against the intended design.`,
+    opts.source || SRC.DIFF, opts.verified !== false, !!opts.verifyRequired,
+    opts.fix || { type: "investigate", intro: "Review the highlighted lines.", commands: [], verify: [cmd] })];
+}
+
+/* finding factory */
+function mk(cmd, severity, title, tags, diff, whyText, source, verified, verifyRequired, fix) {
+  return { cmd, severity, title, tags, diff, why: { text: whyText, source, verified, verifyRequired }, fix };
+}
+
+/* ---------- command registry --------------------------------------------- */
+const REGISTRY = {
+  "show running-config": cmpRunningConfig,
+  "show isis adjacency": cmpIsisAdj,
+  "show bgp vrf all all summary": cmpBgpSummary,
+  "show nve peers": cmpNvePeers,
+  "show interface status": cmpIntfStatus,
+  // informational / expected-to-change
+  "show version": (p, q) => cmpGeneric("show version", p, q, { severity: "info", title: "Software version changed (expected after upgrade)", tags: ["version", "expected"], why: "The NX-OS version changed - this is the intended result of the upgrade. Confirm it matches the target release you planned.", source: SRC.DIFF }),
+  "show clock": () => [], // always changes; ignore
+  "show boot": (p, q) => cmpGeneric("show boot", p, q, { severity: "info", title: "Boot variables changed", tags: ["boot"], why: "Boot variables changed. Verify they point to the intended new image so the box boots correctly on next reload.", source: SRC.DIFF }),
+};
+
+/* commands that get a plain diff if present but no specialised rule */
+const GENERIC_DEFAULT = [
+  "show ip arp", "show module", "show ip interface brief", "show mac address-table",
+  "show inventory", "show ip route vrf all", "show ip route", "show isis database detail",
+  "show vpc", "show interface description", "show lldp neighbors",
+];
+
+/* ---------- run everything ------------------------------------------------ */
+function compareAll(preText, postText) {
+  const pre = splitCapture(preText), post = splitCapture(postText);
+  const cmds = new Set([...Object.keys(pre), ...Object.keys(post)]);
+  const findings = [];
+  const compared = [];
+
+  for (const cmd of KNOWN_COMMANDS) {
+    if (!cmds.has(cmd)) continue;
+    compared.push(cmd);
+    const fn = REGISTRY[cmd];
+    if (fn) findings.push(...fn(pre[cmd] || "", post[cmd] || ""));
+    else if (GENERIC_DEFAULT.includes(cmd)) {
+      const sev = /route|vpc|module/.test(cmd) ? "warning" : "info";
+      findings.push(...cmpGeneric(cmd, pre[cmd] || "", post[cmd] || "", {
+        severity: sev,
+        title: `Change detected: ${cmd}`,
+        tags: [cmd.replace(/^show\s+/, "")],
+      }));
+    }
+  }
+  return { findings: correlate(findings), compared };
+}
+
+/* ---------- correlation: tie scattered symptoms to a root cause ----------- */
+function correlate(findings) {
+  const hasMtu = findings.some((f) => f.tags.includes("vxlan-mtu"));
+  const isisDown = findings.some((f) => f.tags.includes("adjacency"));
+  const bgpDown = findings.some((f) => f.tags.includes("session"));
+  const nveLost = findings.some((f) => f.tags.includes("nve"));
+  const chain = [hasMtu && "uplink MTU reset", isisDown && "IS-IS adjacency down", bgpDown && "BGP overlay session down", nveLost && "NVE peer lost"].filter(Boolean);
+
+  if (hasMtu && (isisDown || bgpDown || nveLost) && chain.length >= 2) {
+    const corr = {
+      cmd: "correlation",
+      severity: "critical",
+      title: "Correlated root cause: underlay MTU reset cascading into the overlay",
+      tags: ["root-cause", "correlation"],
+      diff: [{ type: "ctx", text: "Symptom chain detected across commands:" }, ...chain.map((c, i) => ({ type: "del", text: `${i + 1}. ${c}` }))],
+      why: {
+        text:
+          `Several independent findings line up into one chain: ${chain.join("  ->  ")}. ` +
+          `The MTU reset on the fabric uplinks is the plausible single root cause - it can break the IS-IS ` +
+          `adjacency (hello padding to MTU), which removes underlay reachability to the spine loopbacks, which ` +
+          `takes down the BGP EVPN sessions and therefore the NVE peers. Fixing the MTU first is likely to ` +
+          `recover the rest.`,
+        source: SRC.PROTO,
+        verified: true,
+        note: "This is a correlation of your own captured data plus protocol design logic. It is a strong hypothesis, but confirm on the device that restoring MTU recovers the adjacency, session and peer before closing out.",
+        verifyRequired: true,
+      },
+      fix: {
+        type: "deterministic",
+        intro: "Address the root cause (MTU) first, then re-check the downstream symptoms:",
+        commands: ["! restore uplink MTU (see running-config finding for exact interfaces)", "interface Ethernet1/49-50", "  mtu 9216"],
+        verify: ["show isis adjacency", "show bgp vrf all all summary", "show nve peers"],
+      },
+    };
+    return [corr, ...findings];
+  }
+  return findings;
+}
+
+
+/* ===================== SAMPLES ===================== */
+const SAMPLE_PRE="LEAF-01# show running-config\n!Command: show running-config\n!Time: Wed Jul 22 09:00:00 2026\nversion 10.5(4) Bios:version 05.47\nhostname LEAF-01\nfeature isis\nfeature bgp\nfeature nv overlay\nfeature vn-segment-vlan-based\nvlan 100\n  vn-segment 10100\nvlan 200\n  vn-segment 10200\ninterface Ethernet1/49\n  description ** SPINE-01 UPLINK **\n  mtu 9216\n  no switchport\n  ip address 10.1.49.1/30\n  ip router isis UNDERLAY\n  no shutdown\ninterface Ethernet1/50\n  description ** SPINE-02 UPLINK **\n  mtu 9216\n  no switchport\n  ip address 10.1.50.1/30\n  ip router isis UNDERLAY\n  no shutdown\ninterface Ethernet1/1\n  description ** SERVER-DB01 **\n  switchport access vlan 100\n  spanning-tree port type edge\n  no shutdown\ninterface loopback0\n  ip address 10.0.0.1/32\n  ip router isis UNDERLAY\ninterface loopback1\n  ip address 10.0.1.1/32\n  ip router isis UNDERLAY\ninterface nve1\n  no shutdown\n  host-reachability protocol bgp\n  source-interface loopback1\n  member vni 10100\n    ingress-replication protocol bgp\n  member vni 50000 associate-vrf\nrouter isis UNDERLAY\n  net 49.0001.0100.0000.0001.00\nrouter bgp 65001\n  address-family l2vpn evpn\n  neighbor 10.0.0.101\n    remote-as 65001\n    address-family l2vpn evpn\n  neighbor 10.0.0.102\n    remote-as 65001\n    address-family l2vpn evpn\n\nLEAF-01# show ip arp\nFlags: * - Adjacencies learnt on non-active FHRP router\nIP ARP Table for context default\nTotal number of entries: 3\nAddress         Age       MAC Address     Interface\n10.1.49.2       00:05:12  5087.1111.0001  Ethernet1/49\n10.1.50.2       00:05:20  5087.2222.0002  Ethernet1/50\n192.168.100.10  00:01:33  0050.56aa.1001  Vlan100\n\nLEAF-01# show module\nMod Ports             Module-Type                       Model           Status\n--- ----- ------------------------------------- --------------------- ---------\n1   54    48x10/25G + 6x40/100G Ethernet Module N9K-C93180YC-FX3      active *\n\nLEAF-01# show ip interface brief\nIP Interface Status for VRF \"default\"\nInterface            IP Address      Interface Status\nVlan100              192.168.100.1   protocol-up/link-up/admin-up\nEthernet1/49         10.1.49.1       protocol-up/link-up/admin-up\nEthernet1/50         10.1.50.1       protocol-up/link-up/admin-up\nloopback0            10.0.0.1        protocol-up/link-up/admin-up\nloopback1            10.0.1.1        protocol-up/link-up/admin-up\n\nLEAF-01# show mac address-table\nLegend:\n        * - primary entry, G - Gateway MAC\n   VLAN     MAC Address      Type      age     Secure NTFY Ports\n   100      0050.56aa.1001   dynamic   0         F      F  Eth1/1\n   200      0050.56aa.2002   dynamic   0         F      F  nve1(10.0.1.22)\n\nLEAF-01# show version\nCisco Nexus Operating System (NX-OS) Software\n  NXOS: version 10.5(4)\n  BIOS: version 05.47\n  Device name: LEAF-01\n  bootflash: 128000 MB\nKernel uptime is 45 day(s), 3 hour(s), 12 minute(s)\n\nLEAF-01# show inventory\nNAME: \"Chassis\", DESCR: \"Nexus9000 C93180YC-FX3 Chassis\"\nPID: N9K-C93180YC-FX3   VID: V01   SN: FDO12345678\n\nLEAF-01# show boot\nCurrent Boot Variables:\nsup-1\nNXOS variable = bootflash:/nxos64-cs.10.5.4.M.bin\nNo module boot variable set\n\nLEAF-01# show ip route vrf all\nIP Route Table for VRF \"default\"\n10.0.0.101/32, ubest/mbest: 1/0\n    *via 10.1.49.2, Eth1/49, [115/20], 2d10h, isis-UNDERLAY, L1\n10.0.0.102/32, ubest/mbest: 1/0\n    *via 10.1.50.2, Eth1/50, [115/20], 2d10h, isis-UNDERLAY, L1\n\nLEAF-01# show ip route\nIP Route Table for VRF \"default\"\n10.0.0.101/32, ubest/mbest: 1/0\n    *via 10.1.49.2, Eth1/49, [115/20], 2d10h, isis-UNDERLAY, L1\n10.0.0.102/32, ubest/mbest: 1/0\n    *via 10.1.50.2, Eth1/50, [115/20], 2d10h, isis-UNDERLAY, L1\n\nLEAF-01# show isis adjacency\nIS-IS process: UNDERLAY VRF: default\nSystem ID       SNPA            Level  State  Hold Time  Interface\nSPINE-01        N/A             1      UP     00:00:26   Ethernet1/49\nSPINE-02        N/A             1      UP     00:00:29   Ethernet1/50\n\nLEAF-01# show bgp vrf all all summary\nBGP summary information for VRF default, address family L2VPN EVPN\nNeighbor        V    AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd\n10.0.0.101      4 65001    1250    1240      500    0    0 02:10:00 320\n10.0.0.102      4 65001    1248    1238      500    0    0 02:09:50 320\n\nLEAF-01# show isis database detail\nIS-IS Process UNDERLAY LSDB\nLSPID                 Seq Number   Checksum  Lifetime\nLEAF-01.00-00         0x00000045   0x1a2b     1180\nSPINE-01.00-00        0x00000039   0x3c4d     1150\nSPINE-02.00-00        0x00000041   0x5e6f     1160\n\nLEAF-01# show vpc\nLegend:\n                (*) - local vPC is down, forwarding via vPC peer-link\nvPC domain id                     : 10\nPeer status                       : peer adjacency formed ok\nvPC keep-alive status             : peer is alive\nConfiguration consistency status  : success\n\nLEAF-01# show nve peers\nInterface Peer-IP          State LearnType Uptime\nnve1      10.0.1.21        Up    CP        02:05:15\nnve1      10.0.1.22        Up    CP        02:05:10\n\nLEAF-01# show interface status\nPort      Name              Status    Vlan    Duplex Speed  Type\nEth1/1    ** SERVER-DB01 ** connected 100     full   25G    SFP-25G\nEth1/49   ** SPINE-01 UP ** connected routed  full   100G   QSFP-100G\nEth1/50   ** SPINE-02 UP ** connected routed  full   100G   QSFP-100G\n\nLEAF-01# show interface description\nInterface        Description\nEth1/1           ** SERVER-DB01 **\nEth1/49          ** SPINE-01 UPLINK **\nEth1/50          ** SPINE-02 UPLINK **\n\nLEAF-01# show lldp neighbors\nDevice ID       Local Intf  Hold-time  Capability  Port ID\nSPINE-01        Eth1/49     120        BR          Eth1/1\nSPINE-02        Eth1/50     120        BR          Eth1/1\n\nLEAF-01# show clock\n09:00:00.123 UTC Wed Jul 22 2026\n!\n";
+const SAMPLE_POST="LEAF-01# show running-config\n!Command: show running-config\n!Time: Wed Jul 22 11:30:00 2026\nversion 10.5(5) Bios:version 05.47\nhostname LEAF-01\nfeature isis\nfeature bgp\nfeature nv overlay\nfeature vn-segment-vlan-based\nvlan 100\n  vn-segment 10100\nvlan 200\n  vn-segment 10200\ninterface Ethernet1/49\n  description ** SPINE-01 UPLINK **\n  mtu 1500\n  no switchport\n  ip address 10.1.49.1/30\n  ip router isis UNDERLAY\n  no shutdown\ninterface Ethernet1/50\n  description ** SPINE-02 UPLINK **\n  mtu 1500\n  no switchport\n  ip address 10.1.50.1/30\n  ip router isis UNDERLAY\n  no shutdown\ninterface Ethernet1/1\n  description ** SERVER-DB01 **\n  switchport access vlan 100\n  spanning-tree port type edge\n  no shutdown\ninterface loopback0\n  ip address 10.0.0.1/32\n  ip router isis UNDERLAY\ninterface loopback1\n  ip address 10.0.1.1/32\n  ip router isis UNDERLAY\ninterface nve1\n  no shutdown\n  host-reachability protocol bgp\n  source-interface loopback1\n  member vni 10100\n    ingress-replication protocol bgp\n  member vni 50000 associate-vrf\nrouter isis UNDERLAY\n  net 49.0001.0100.0000.0001.00\nrouter bgp 65001\n  address-family l2vpn evpn\n  neighbor 10.0.0.101\n    remote-as 65001\n    address-family l2vpn evpn\n  neighbor 10.0.0.102\n    remote-as 65001\n    address-family l2vpn evpn\n\nLEAF-01# show ip arp\nFlags: * - Adjacencies learnt on non-active FHRP router\nIP ARP Table for context default\nTotal number of entries: 3\nAddress         Age       MAC Address     Interface\n10.1.49.2       00:02:12  5087.1111.0001  Ethernet1/49\n10.1.50.2       00:02:20  5087.2222.0002  Ethernet1/50\n192.168.100.10  00:01:33  0050.56aa.1001  Vlan100\n\nLEAF-01# show module\nMod Ports             Module-Type                       Model           Status\n--- ----- ------------------------------------- --------------------- ---------\n1   54    48x10/25G + 6x40/100G Ethernet Module N9K-C93180YC-FX3      active *\n\nLEAF-01# show ip interface brief\nIP Interface Status for VRF \"default\"\nInterface            IP Address      Interface Status\nVlan100              192.168.100.1   protocol-up/link-up/admin-up\nEthernet1/49         10.1.49.1       protocol-up/link-up/admin-up\nEthernet1/50         10.1.50.1       protocol-up/link-up/admin-up\nloopback0            10.0.0.1        protocol-up/link-up/admin-up\nloopback1            10.0.1.1        protocol-up/link-up/admin-up\n\nLEAF-01# show mac address-table\nLegend:\n        * - primary entry, G - Gateway MAC\n   VLAN     MAC Address      Type      age     Secure NTFY Ports\n   100      0050.56aa.1001   dynamic   0         F      F  Eth1/1\n\nLEAF-01# show version\nCisco Nexus Operating System (NX-OS) Software\n  NXOS: version 10.5(5)\n  BIOS: version 05.47\n  Device name: LEAF-01\n  bootflash: 128000 MB\nKernel uptime is 0 day(s), 0 hour(s), 18 minute(s)\n\nLEAF-01# show inventory\nNAME: \"Chassis\", DESCR: \"Nexus9000 C93180YC-FX3 Chassis\"\nPID: N9K-C93180YC-FX3   VID: V01   SN: FDO12345678\n\nLEAF-01# show boot\nCurrent Boot Variables:\nsup-1\nNXOS variable = bootflash:/nxos64-cs.10.5.5.M.bin\nNo module boot variable set\n\nLEAF-01# show ip route vrf all\nIP Route Table for VRF \"default\"\n10.0.0.101/32, ubest/mbest: 1/0\n    *via 10.1.49.2, Eth1/49, [115/20], 00:15:00, isis-UNDERLAY, L1\n\nLEAF-01# show ip route\nIP Route Table for VRF \"default\"\n10.0.0.101/32, ubest/mbest: 1/0\n    *via 10.1.49.2, Eth1/49, [115/20], 00:15:00, isis-UNDERLAY, L1\n\nLEAF-01# show isis adjacency\nIS-IS process: UNDERLAY VRF: default\nSystem ID       SNPA            Level  State  Hold Time  Interface\nSPINE-01        N/A             1      UP     00:00:24   Ethernet1/49\n\nLEAF-01# show bgp vrf all all summary\nBGP summary information for VRF default, address family L2VPN EVPN\nNeighbor        V    AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd\n10.0.0.101      4 65001    1270    1260      520    0    0 00:14:00 320\n10.0.0.102      4 65001    1248    1238      500    0    0 00:13:50 Idle\n\nLEAF-01# show isis database detail\nIS-IS Process UNDERLAY LSDB\nLSPID                 Seq Number   Checksum  Lifetime\nLEAF-01.00-00         0x00000047   0x1c2d     1190\nSPINE-01.00-00        0x0000003a   0x3d4e     1155\n\nLEAF-01# show vpc\nLegend:\n                (*) - local vPC is down, forwarding via vPC peer-link\nvPC domain id                     : 10\nPeer status                       : peer adjacency formed ok\nvPC keep-alive status             : peer is alive\nConfiguration consistency status  : success\n\nLEAF-01# show nve peers\nInterface Peer-IP          State LearnType Uptime\nnve1      10.0.1.21        Up    CP        00:12:15\n\nLEAF-01# show interface status\nPort      Name              Status    Vlan    Duplex Speed  Type\nEth1/1    ** SERVER-DB01 ** connected 100     full   25G    SFP-25G\nEth1/49   ** SPINE-01 UP ** connected routed  full   100G   QSFP-100G\nEth1/50   ** SPINE-02 UP ** connected routed  full   100G   QSFP-100G\n\nLEAF-01# show interface description\nInterface        Description\nEth1/1           ** SERVER-DB01 **\nEth1/49          ** SPINE-01 UPLINK **\nEth1/50          ** SPINE-02 UPLINK **\n\nLEAF-01# show lldp neighbors\nDevice ID       Local Intf  Hold-time  Capability  Port ID\nSPINE-01        Eth1/49     120        BR          Eth1/1\n\nLEAF-01# show clock\n11:30:00.456 UTC Wed Jul 22 2026\n!\n";
+
+
+/* ===================== UI ===================== */
+var esc = function(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");};
+var decisions = {}; // id -> accept|flag|rollback
+
+function fmtFix(cmds){
+  return cmds.map(function(l){
+    var e = esc(l);
+    if(/^\s*!/.test(l)) return '<span class="cm">'+e+'</span>';
+    e = e.replace(/^(\s*)(interface|router|feature|mtu|neighbor|member|vn-segment|ip)\b/,'$1<span class="kw">$2</span>');
+    return e;
+  }).join("\n");
+}
+
+function diffHtml(rows){
+  return rows.map(function(r){
+    var cls = r.type==="del"?"del":r.type==="add"?"add":r.type==="gap"?"gap":"ctx";
+    return '<span class="ln '+cls+'">'+esc(r.text)+'</span>';
+  }).join("");
+}
+
+function card(f, idx){
+  var id = "f"+idx;
+  var sev = f.severity;
+  var did = f.cmd==="correlation" ? "ROOT-CAUSE" : "DIFF-"+String(idx).padStart(2,"0");
+  var stamp = f.why.verifyRequired
+      ? '<span class="stamp vr">VERIFY REQUIRED</span>'
+      : '<span class="stamp ok">VERIFIED BY DESIGN</span>';
+  var note = f.why.note ? '<div class="note"><b>Caveat:</b> '+esc(f.why.note)+'</div>' : "";
+  var tags = (f.tags||[]).map(function(t){return '<span class="tag">'+esc(t)+'</span>';}).join("");
+
+  // fix block
+  var fixHtml = "";
+  if(f.fix){
+    var ftLabel = f.fix.type==="deterministic"
+      ? '<span class="fixtype ft-det">DETERMINISTIC — PASTE-READY</span>'
+      : '<span class="fixtype ft-inv">INVESTIGATE</span>';
+    fixHtml += '<div class="eyebrow">Recommended fix (engineer review) '+ftLabel+'</div>';
+    if(f.fix.intro) fixHtml += '<div class="why" style="font-size:12.5px;margin-bottom:6px">'+esc(f.fix.intro)+'</div>';
+    if(f.fix.commands && f.fix.commands.length)
+      fixHtml += '<div class="fixblk">'+fmtFix(f.fix.commands)+'</div>';
+    if(f.fix.verify && f.fix.verify.length){
+      fixHtml += '<ul class="verify"><li class="vh">VERIFY ON DEVICE:</li>'+
+        f.fix.verify.map(function(v){return '<li>&rsaquo; '+esc(v)+'</li>';}).join("")+'</ul>';
+    }
+  }
+
+  return ''+
+  '<div class="card sev-'+sev+'" id="card-'+id+'">'+
+    '<div class="chd">'+
+      '<span class="sev s-'+sev+'">'+ (sev==="correlation"?"ROOT CAUSE":sev.toUpperCase()) +'</span>'+
+      '<div class="ctitle">'+esc(f.title)+'<div class="did">'+did+'</div></div>'+
+    '</div>'+
+    '<div class="tags">'+tags+'</div>'+
+    '<div class="sec">'+
+      '<div class="eyebrow">'+(f.cmd==="correlation"?"Correlated symptoms":"Configuration / state difference")+
+         '<span class="tag" style="text-transform:none">'+esc(f.cmd)+'</span></div>'+
+      '<div class="diff">'+diffHtml(f.diff)+'</div>'+
+      '<div class="eyebrow">Engineering analysis — why this changed</div>'+
+      '<div class="why">'+esc(f.why.text)+'</div>'+
+      '<div class="srcline"><span class="src">SOURCE: '+esc(f.why.source)+'</span>'+stamp+'</div>'+
+      note+
+      fixHtml+
+    '</div>'+
+    '<div class="actions">'+
+      '<button class="act" data-act="accept" data-id="'+id+'">Accept</button>'+
+      '<button class="act" data-act="flag" data-id="'+id+'">Flag for review</button>'+
+      '<button class="act" data-act="rollback" data-id="'+id+'">Roll back</button>'+
+      '<span class="decision" id="dec-'+id+'">DECISION PENDING</span>'+
+    '</div>'+
+  '</div>';
+}
+
+function order(f){var m={critical:0,correlation:0,warning:1,info:2};return (f.severity in m)?m[f.severity]:3;}
+
+function run(){
+  var pre=document.getElementById("pre").value;
+  var post=document.getElementById("post").value;
+  var hint=document.getElementById("hint");
+  if(!pre.trim()||!post.trim()){hint.innerHTML='<b style="color:#ef5f6b">Paste (or load) both a pre and a post capture first.</b>';return;}
+
+  var res=compareAll(pre,post);
+  var findings=res.findings.slice().sort(function(a,b){return order(a)-order(b);});
+  decisions={};
+
+  var nc=findings.filter(function(f){return f.severity==="critical"||f.severity==="correlation";}).length;
+  var nw=findings.filter(function(f){return f.severity==="warning";}).length;
+  var ni=findings.filter(function(f){return f.severity==="info";}).length;
+
+  document.getElementById("counts").innerHTML =
+    '<span class="chip c-crit">'+nc+' critical</span>'+
+    '<span class="chip c-warn">'+nw+' warning</span>'+
+    '<span class="chip c-info">'+ni+' informational</span>'+
+    '<span class="chip c-cmp">'+res.compared.length+' commands compared</span>'+
+    '<span class="signoff" id="signoff"></span>';
+
+  var html = findings.length
+    ? findings.map(function(f,i){return card(f,i);}).join("")
+    : '<div class="empty">No differences detected across the recognised commands. ✔</div>';
+  document.getElementById("results").innerHTML = html;
+  document.getElementById("summary").classList.add("show");
+  hint.innerHTML='Compared <b>'+res.compared.length+'</b> commands. Review each finding and sign off below.';
+  updateSignoff(findings.length);
+  document.getElementById("summary").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function updateSignoff(total){
+  var acc=0,flag=0,rb=0;
+  Object.keys(decisions).forEach(function(k){var d=decisions[k];if(d==="accept")acc++;else if(d==="flag")flag++;else if(d==="rollback")rb++;});
+  var pending=total-(acc+flag+rb);
+  var el=document.getElementById("signoff");
+  if(el) el.innerHTML='Engineer sign-off: <b>'+acc+'</b> accepted &middot; <b>'+flag+'</b> flagged &middot; <b>'+rb+'</b> rollback &middot; <b>'+pending+'</b> pending';
+}
+
+/* events */
+document.getElementById("run").addEventListener("click",run);
+
+document.addEventListener("click",function(ev){
+  var t=ev.target;
+  if(t.dataset.load){var w=t.dataset.load;document.getElementById(w).value = w==="pre"?SAMPLE_PRE:SAMPLE_POST;}
+  if(t.dataset.clear){document.getElementById(t.dataset.clear).value="";}
+  if(t.dataset.upload){window.__uploadTarget=t.dataset.upload;document.getElementById("filepick").click();}
+  if(t.dataset.act){
+    var id=t.dataset.id, act=t.dataset.act;
+    decisions[id]=act;
+    var card=document.getElementById("card-"+id);
+    card.querySelectorAll(".act").forEach(function(b){b.className="act";});
+    t.className="act on-"+act;
+    var lbl={accept:"ACCEPTED",flag:"FLAGGED FOR REVIEW",rollback:"MARKED FOR ROLLBACK"}[act];
+    document.getElementById("dec-"+id).textContent=lbl;
+    card.classList.remove("decided-accept","decided-rollback");
+    if(act==="accept")card.classList.add("decided-accept");
+    if(act==="rollback")card.classList.add("decided-rollback");
+    var total=document.querySelectorAll(".card").length;
+    updateSignoff(total);
+  }
+});
+
+document.getElementById("filepick").addEventListener("change",function(ev){
+  var file=ev.target.files[0]; if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){var tgt=window.__uploadTarget||"pre";document.getElementById(tgt).value=e.target.result;};
+  reader.readAsText(file);
+  ev.target.value="";
+});
+</script>
+</body>
+</html>
