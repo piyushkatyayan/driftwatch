@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upgrade Assurance Programme — Control Model, Roadmap &amp; Request</title>
+
+<!--
+  ============================================================================
+  BEFORE PRESENTING: fill in your real numbers.
+  Open the "The case" tab and type them into the four boxes, OR hard-code them
+  permanently by editing the value="" attributes on the inputs with
+  id="inDevices", id="inFreq", id="inMins", id="inIncidents" further down.
+  Nothing else on this page needs editing.
+  ============================================================================
+-->
+
+<style>
+:root{
+  --bg:#0e1621; --panel:#16202e; --raised:#1c2837; --hair:#263241; --hair2:#31404f;
+  --tx:#e4ebf2; --muted:#8b9aab; --faint:#5d6b7c;
+  --brass:#c9a552; --brass-dim:#6e5e30; --brass-bg:#221d0f;
+
+  --pred:#9585d8; --pred-bg:#1c1830; --pred-bd:#3b3269;
+  --prev:#4fb3a5; --prev-bg:#12251f; --prev-bd:#265448;
+  --detc:#5aa0e0; --detc-bg:#132234; --detc-bd:#24425f;
+  --corr:#e79a45; --corr-bg:#2a2013; --corr-bd:#4a3a1f;
+  --bad:#ef5f6b; --bad-bg:#2a1519; --bad-bd:#4a232b;
+  --good:#4cc372; --good-bg:#0f2318; --good-bd:#1f4230;
+
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);line-height:1.55;
+  font-feature-settings:"tnum" 1}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 20px 90px}
+h1,h2,h3,h4{margin:0}
+::selection{background:#2d3d50}
+
+/* ---------- masthead ---------- */
+.mast{display:flex;gap:15px;align-items:flex-start;flex-wrap:wrap}
+.mark{flex:0 0 auto;margin-top:3px}
+.mtitle h1{font-size:21px;letter-spacing:.02em;font-weight:700;line-height:1.25}
+.mtitle .kicker{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;color:var(--brass);
+  text-transform:uppercase;margin-bottom:5px}
+.mtitle .sub{color:var(--muted);font-size:13px;margin-top:4px;max-width:600px}
+
+/* ---------- ask banner (persistent) ---------- */
+.askbar{margin-top:18px;border:1px solid var(--brass-dim);background:linear-gradient(180deg,#1e1a10,#181410);
+  border-radius:13px;padding:15px 18px;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.askbar .lab{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--brass);
+  text-transform:uppercase;margin-bottom:4px}
+.askbar .txt{flex:1;min-width:280px}
+.askbar .txt p{margin:0;font-size:14.5px;color:#e8ddc4}
+.askbar .txt p b{color:#fff}
+.askbar .txt .sm{font-size:12.5px;color:var(--muted);margin-top:5px}
+.demolink{display:inline-flex;align-items:center;gap:8px;text-decoration:none;
+  background:var(--brass);color:#10161f;font-weight:650;font-size:13.5px;border-radius:9px;
+  padding:11px 18px;white-space:nowrap}
+.demolink:hover{filter:brightness(1.08)}
+.demolink:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.demolink .arw{font-family:var(--mono)}
+
+/* ---------- tabs ---------- */
+nav.tabs{display:flex;gap:4px;flex-wrap:wrap;margin:22px 0 0;border-bottom:1px solid var(--hair)}
+.tab{font-family:var(--sans);font-size:13px;color:var(--muted);background:transparent;
+  border:1px solid transparent;border-bottom:none;border-radius:9px 9px 0 0;padding:9px 14px;cursor:pointer;
+  position:relative;top:1px}
+.tab:hover{color:var(--tx)}
+.tab[aria-selected="true"]{color:var(--tx);background:var(--panel);border-color:var(--hair);font-weight:600}
+.tab[aria-selected="true"]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--brass)}
+.tab:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.tabnum{font-family:var(--mono);font-size:9.5px;color:var(--faint);margin-right:7px;letter-spacing:.08em}
+.tab[aria-selected="true"] .tabnum{color:var(--brass)}
+
+.panel{display:none;padding-top:24px;animation:rise .3s ease}
+.panel.on{display:block}
+@keyframes rise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+/* ---------- generic ---------- */
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--faint);margin:0 0 9px}
+.lead{font-size:15px;color:#cfdae6;max-width:790px}
+.box{background:var(--panel);border:1px solid var(--hair);border-radius:12px;padding:16px 17px}
+.box h3{font-size:14.5px;font-weight:650;margin-bottom:7px}
+.box p{margin:0;font-size:13px;color:var(--muted)}
+.hr{height:1px;background:var(--hair);margin:26px 0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+@media(max-width:860px){.g2{grid-template-columns:1fr}}
+
+/* ---------- spine ---------- */
+.spine{background:var(--panel);border:1px solid var(--hair);border-radius:14px;padding:18px 16px 8px;margin-top:4px}
+.spine svg{width:100%;height:auto;display:block}
+.stage{cursor:pointer}
+.stage .halo{opacity:0;transition:opacity .18s ease}
+.stage:hover .halo{opacity:.55}
+.stage.sel .halo{opacity:1}
+.spinehint{font-family:var(--mono);font-size:10.5px;color:var(--faint);letter-spacing:.05em;
+  text-align:center;padding:2px 0 8px}
+.detail{margin-top:14px;border:1px solid var(--hair);border-left:3px solid var(--hair);
+  background:var(--panel);border-radius:12px;padding:17px 19px}
+.detail.d-pred{border-left-color:var(--pred)} .detail.d-prev{border-left-color:var(--prev)}
+.detail.d-detc{border-left-color:var(--detc)} .detail.d-corr{border-left-color:var(--corr)}
+.detail.d-loop{border-left-color:var(--brass)}
+.dhead{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;margin-bottom:4px}
+.dtag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:3px 9px;border-radius:5px;border:1px solid}
+.t-pred{color:var(--pred);border-color:var(--pred-bd);background:var(--pred-bg)}
+.t-prev{color:var(--prev);border-color:var(--prev-bd);background:var(--prev-bg)}
+.t-detc{color:var(--detc);border-color:var(--detc-bd);background:var(--detc-bg)}
+.t-corr{color:var(--corr);border-color:var(--corr-bd);background:var(--corr-bg)}
+.t-loop{color:var(--brass);border-color:var(--brass-dim);background:var(--brass-bg)}
+.dhead h3{font-size:17px;font-weight:650}
+.dwhen{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.05em}
+.dq{font-size:13.5px;color:var(--muted);font-style:italic;margin:6px 0 13px}
+.dcols{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+@media(max-width:860px){.dcols{grid-template-columns:1fr}}
+ul.ticks{list-style:none;margin:0;padding:0}
+ul.ticks li{position:relative;padding-left:19px;font-size:13.5px;color:#cbd6e2;margin:7px 0}
+ul.ticks li::before{content:"";position:absolute;left:0;top:8px;width:7px;height:7px;border-radius:2px}
+.d-pred ul.ticks li::before{background:var(--pred)}
+.d-prev ul.ticks li::before{background:var(--prev)}
+.d-detc ul.ticks li::before{background:var(--detc)}
+.d-corr ul.ticks li::before{background:var(--corr)}
+.d-loop ul.ticks li::before{background:var(--brass)}
+.side{background:#0b131d;border:1px solid var(--hair);border-radius:9px;padding:13px 14px;align-self:start}
+.side p{font-size:12.5px;color:var(--muted);margin:0}
+.statusrow{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.pill{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:3px 9px;border-radius:5px;border:1px solid}
+.p-live{color:var(--good);border-color:var(--good-bd);background:var(--good-bg)}
+.p-next{color:var(--brass);border-color:var(--brass-dim);background:var(--brass-bg)}
+.p-later{color:var(--muted);border-color:var(--hair2);background:#131c27}
+
+/* ---------- scale calculator ---------- */
+.calcnote{border:1px solid var(--corr-bd);background:var(--corr-bg);border-radius:11px;
+  padding:13px 15px;margin-bottom:16px}
+.calcnote p{margin:0;font-size:13.5px;color:#e8d5b8}
+.calcnote b{color:var(--corr)}
+.inputs{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+@media(max-width:860px){.inputs{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.inputs{grid-template-columns:1fr}}
+.inp{background:var(--panel);border:1px solid var(--hair);border-radius:11px;padding:13px 14px}
+.inp label{display:block;font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.4}
+.inp input{width:100%;background:#0b131d;border:1px solid var(--hair2);border-radius:7px;
+  color:var(--tx);font-family:var(--mono);font-size:19px;padding:8px 10px;outline:none}
+.inp input:focus{border-color:var(--brass);box-shadow:0 0 0 2px rgba(201,165,82,.16)}
+.inp input::placeholder{color:#3f4c5b;font-size:16px}
+.derived{margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+@media(max-width:860px){.derived{grid-template-columns:1fr}}
+.dv{background:#0b131d;border:1px solid var(--hair);border-left:3px solid var(--brass-dim);
+  border-radius:11px;padding:14px 16px}
+.dv .n{font-family:var(--mono);font-size:26px;color:var(--brass);line-height:1.15}
+.dv .n.empty{color:#3f4c5b}
+.dv .l{font-size:12.5px;color:var(--muted);margin-top:6px}
+.dv .l b{color:#cbd6e2;font-weight:600}
+
+/* ---------- compare ---------- */
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+@media(max-width:860px){.cmp{grid-template-columns:1fr}}
+.cmp .box.now{border-left:3px solid var(--bad)}
+.cmp .box.then{border-left:3px solid var(--good)}
+ul.plain{list-style:none;margin:9px 0 0;padding:0}
+ul.plain li{font-size:13px;color:var(--muted);margin:7px 0;padding-left:17px;position:relative}
+ul.plain li::before{position:absolute;left:0;font-family:var(--mono);font-size:12px}
+.now ul.plain li::before{content:"\00d7";color:var(--bad)}
+.then ul.plain li::before{content:"\2713";color:var(--good)}
+
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--hair);vertical-align:top}
+th{font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);font-weight:400}
+td.metric{color:var(--tx);font-weight:600}
+td.small{color:var(--muted);font-size:12.5px}
+.tbd{font-family:var(--mono);font-size:10px;color:var(--brass);border:1px solid var(--brass-dim);
+  background:var(--brass-bg);border-radius:4px;padding:2px 7px;white-space:nowrap}
+
+/* ---------- roadmap ---------- */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+@media(max-width:860px){.steps{grid-template-columns:1fr}}
+.step{background:var(--panel);border:1px solid var(--hair);border-radius:12px;padding:0;overflow:hidden;
+  cursor:pointer;text-align:left;font-family:var(--sans);color:inherit;display:block;width:100%}
+.step:hover{border-color:var(--hair2)}
+.step[aria-expanded="true"]{border-color:var(--brass-dim)}
+.step:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.sbar{height:3px;background:var(--hair)}
+.step.s1 .sbar{background:var(--good)} .step.s2 .sbar{background:var(--brass)} .step.s3 .sbar{background:var(--pred)}
+.shd{padding:14px 16px 13px}
+.snum{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--faint)}
+.step h3{font-size:15px;margin:5px 0 6px}
+.step .sdesc{font-size:12.5px;color:var(--muted)}
+.effort{margin-top:11px;display:flex;align-items:baseline;gap:8px;border-top:1px solid var(--hair);padding-top:10px}
+.effort .en{font-family:var(--mono);font-size:15px;color:var(--brass)}
+.effort .el{font-size:11.5px;color:var(--faint)}
+.sbody{display:none;border-top:1px solid var(--hair);padding:14px 16px;background:#111a25}
+.step[aria-expanded="true"] .sbody{display:block}
+.sbody ul{margin:0;padding-left:17px} .sbody li{font-size:12.5px;color:#c3cfdc;margin:6px 0}
+.sbody h4{font-size:11px;font-family:var(--mono);letter-spacing:.12em;color:var(--faint);
+  text-transform:uppercase;margin:13px 0 7px}
+.chev{float:right;color:var(--faint);font-family:var(--mono);font-size:11px}
+
+/* ---------- requirements ---------- */
+.reqgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}
+@media(max-width:860px){.reqgrid{grid-template-columns:1fr}}
+.req{background:var(--panel);border:1px solid var(--hair);border-radius:12px;padding:15px 16px}
+.req h3{font-size:14px;display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.rn{font-family:var(--mono);font-size:10px;color:var(--brass);border:1px solid var(--brass-dim);
+  background:var(--brass-bg);border-radius:4px;padding:2px 7px}
+.req ul{list-style:none;margin:0;padding:0}
+.req li{font-size:13px;color:#c8d3e0;margin:8px 0;padding-left:16px;position:relative}
+.req li::before{content:"\203a";position:absolute;left:0;color:var(--brass);font-size:14px;line-height:1.3}
+.req ul.none li::before{content:"\2014";color:var(--good)}
+.cost{background:var(--good-bg);border:1px solid var(--good-bd);border-radius:10px;padding:13px 15px;margin-bottom:15px}
+.cost p{margin:0;font-size:13.5px;color:#cbd6e2} .cost b{color:var(--good)}
+.opt{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:15px}
+@media(max-width:860px){.opt{grid-template-columns:1fr}}
+.optbox{border:1px solid var(--hair);border-radius:12px;padding:15px 16px;background:var(--panel)}
+.optbox.pick{border-color:var(--brass-dim);background:#1a1a14}
+.optbox h3{font-size:14px;margin-bottom:4px}
+.optlab{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--faint);margin-bottom:7px}
+.optbox.pick .optlab{color:var(--brass)}
+.optbox p{font-size:12.5px;color:var(--muted);margin:0}
+
+/* ---------- risks ---------- */
+.risk{background:var(--panel);border:1px solid var(--hair);border-radius:12px;margin-bottom:11px;
+  overflow:hidden}
+.rhd{display:flex;gap:12px;align-items:flex-start;padding:14px 16px}
+.rsev{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;padding:3px 8px;border-radius:5px;
+  border:1px solid;white-space:nowrap;margin-top:2px}
+.rs-high{color:var(--bad);border-color:var(--bad-bd);background:var(--bad-bg)}
+.rs-med{color:var(--corr);border-color:var(--corr-bd);background:var(--corr-bg)}
+.rs-low{color:var(--detc);border-color:var(--detc-bd);background:var(--detc-bg)}
+.risk h3{font-size:14px;margin-bottom:5px}
+.risk .rd{font-size:13px;color:var(--muted);margin:0}
+.rmit{background:#0b131d;border-top:1px solid var(--hair);padding:11px 16px 12px;
+  font-size:12.5px;color:#c3cfdc}
+.rmit .ml{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;color:var(--good);
+  text-transform:uppercase;margin-right:9px}
+
+/* ---------- evidence ---------- */
+.ev{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+@media(max-width:860px){.ev{grid-template-columns:1fr}}
+.evbox{border-radius:12px;padding:15px 17px;border:1px solid}
+.ev-ok{border-color:var(--good-bd);background:var(--good-bg)}
+.ev-vr{border-color:var(--corr-bd);background:var(--corr-bg)}
+.evbox h3{font-size:14px;margin-bottom:8px;font-family:var(--mono);letter-spacing:.05em}
+.ev-ok h3{color:var(--good)} .ev-vr h3{color:var(--corr)}
+.evbox p{font-size:13px;color:#cbd6e2;margin:0 0 8px}
+.evbox .ex{font-family:var(--mono);font-size:11.5px;color:var(--muted);
+  border-top:1px solid rgba(255,255,255,.07);padding-top:9px;margin-top:4px;line-height:1.6}
+.story{border:1px solid var(--hair);border-radius:12px;background:var(--panel);padding:16px 18px;margin-top:14px}
+.story h3{font-size:14.5px;margin-bottom:8px}
+.story p{font-size:13.5px;color:#c8d3e0;margin:0 0 9px}
+.story p:last-child{margin-bottom:0}
+
+/* ---------- the ask ---------- */
+.decision{border:1px solid var(--brass-dim);background:linear-gradient(180deg,#1f1b11,#171410);
+  border-radius:14px;padding:22px 24px}
+.decision .dnum{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--brass);
+  text-transform:uppercase}
+.decision h2{font-size:22px;margin:8px 0 10px;line-height:1.3}
+.decision p{font-size:14.5px;color:#e2d8c4;margin:0 0 10px;max-width:720px}
+.decision p:last-child{margin-bottom:0}
+.asknot{margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:13px}
+@media(max-width:860px){.asknot{grid-template-columns:1fr}}
+.ansbox{border:1px solid var(--hair);border-radius:12px;padding:14px 16px;background:var(--panel)}
+.ansbox h3{font-size:13px;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:9px}
+.ansbox ul{list-style:none;margin:0;padding:0}
+.ansbox li{font-size:13px;margin:7px 0;padding-left:18px;position:relative;color:#c8d3e0}
+.ansbox.yes li::before{content:"\2713";position:absolute;left:0;color:var(--good);font-family:var(--mono)}
+.ansbox.no li::before{content:"\00d7";position:absolute;left:0;color:var(--bad);font-family:var(--mono)}
+.qa{margin-top:16px}
+.qitem{border:1px solid var(--hair);border-radius:11px;background:var(--panel);margin-bottom:9px;overflow:hidden}
+.qbtn{width:100%;text-align:left;background:transparent;border:0;color:var(--tx);font-family:var(--sans);
+  font-size:13.5px;font-weight:600;padding:13px 16px;cursor:pointer;display:flex;gap:11px;align-items:center}
+.qbtn:hover{color:#fff}
+.qbtn:focus-visible{outline:2px solid var(--brass);outline-offset:-2px}
+.qbtn .qm{font-family:var(--mono);color:var(--brass);font-size:12px}
+.qans{display:none;padding:0 16px 14px 43px;font-size:13px;color:#c3cfdc}
+.qitem.open .qans{display:block}
+.qitem.open .qm{color:var(--muted)}
+
+.srcnote{margin-top:14px;font-size:11.5px;color:var(--faint);line-height:1.65;
+  border-top:1px solid var(--hair);padding-top:12px}
+.srcnote b{color:var(--muted)}
+.srcnote a{color:var(--brass-dim);text-decoration:none;border-bottom:1px dotted var(--brass-dim)}
+.foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--hair);color:var(--faint);
+  font-size:11.5px;line-height:1.7}
+.foot b{color:var(--muted)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ================= PRINT / PDF ================= */
+@media print{
+  @page{margin:14mm}
+  body{background:#fff;color:#111}
+  .wrap{max-width:none;padding:0}
+  nav.tabs,.demolink,.spinehint{display:none!important}
+  .panel{display:block!important;page-break-before:always;padding-top:8px}
+  .panel:first-of-type{page-break-before:avoid}
+  .panel::before{content:attr(data-print-title);display:block;font-size:15pt;font-weight:700;
+    margin:0 0 10pt;padding-bottom:5pt;border-bottom:1.5pt solid #111;color:#111}
+  .mast,.askbar,.box,.req,.risk,.step,.inp,.dv,.optbox,.evbox,.story,.detail,.spine,.decision,
+  .ansbox,.qitem,.calcnote,.cost{background:#fff!important;border-color:#bbb!important;
+    box-shadow:none!important;color:#111}
+  h1,h2,h3,h4,.mtitle h1,.decision h2{color:#111}
+  p,li,td,.lead,.box p,.req li,.risk .rd,.dv .l,.step .sdesc,.optbox p,.evbox p,.story p,
+  .ansbox li,.qans,.sbody li{color:#333!important}
+  .kicker,.eyebrow,.snum,.optlab,.rn,.dnum,th{color:#666!important}
+  .dv .n,.effort .en{color:#111!important}
+  .askbar{border:1.5pt solid #111!important}
+  .step .sbody{display:block!important;background:#fafafa!important}
+  .qans{display:block!important}
+  .detail{border-left-width:3pt!important}
+  a{color:#111!important}
+  .srcnote,.foot{color:#555!important}
+  .spine svg{max-height:150pt}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= MASTHEAD ================= -->
+  <header class="mast">
+    <svg class="mark" width="36" height="36" viewBox="0 0 36 36" aria-hidden="true">
+      <circle cx="18" cy="18" r="16" fill="none" stroke="#6e5e30" stroke-width="1.2"/>
+      <circle cx="18" cy="18" r="11" fill="none" stroke="#263241" stroke-width="1"/>
+      <path d="M18 4 L18 10" stroke="#c9a552" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M18 18 L26 22" stroke="#c9a552" stroke-width="2" stroke-linecap="round"/>
+      <path d="M18 18 L18 11" stroke="#e4ebf2" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="18" cy="18" r="1.8" fill="#c9a552"/>
+    </svg>
+    <div class="mtitle">
+      <div class="kicker">Network Change Assurance</div>
+      <h1>Upgrade Assurance Programme</h1>
+      <div class="sub">Moving NX-OS fabric upgrades from after-the-fact firefighting to a controlled,
+        evidenced process — using the same control language we already use for audit.</div>
+    </div>
+  </header>
+
+  <!-- ================= PERSISTENT ASK ================= -->
+  <div class="askbar">
+    <div class="txt">
+      <div class="lab">What I need from you today</div>
+      <p><b>One decision: approval to enable WSL on my laptop</b> so I can run the Cisco parsing library
+        against our own captures.</p>
+      <div class="sm">No budget, no licence, no server, no production access. Everything else is already
+        built and working — see the live tool.</div>
+    </div>
+    <a class="demolink" href="index.html">See the tool working <span class="arw">&rarr;</span></a>
+  </div>
+
+  <!-- ================= TABS ================= -->
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" aria-selected="true"  aria-controls="p-controls" id="t-controls"><span class="tabnum">01</span>Control model</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-case"     id="t-case"><span class="tabnum">02</span>The case</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-road"     id="t-road"><span class="tabnum">03</span>Roadmap &amp; effort</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-req"      id="t-req"><span class="tabnum">04</span>What we need</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-risk"     id="t-risk"><span class="tabnum">05</span>Risks</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-trust"    id="t-trust"><span class="tabnum">06</span>Why it can be trusted</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-ask"      id="t-ask"><span class="tabnum">07</span>The ask</button>
+  </nav>
+
+  <!-- ============ 01 CONTROL MODEL ============ -->
+  <section class="panel on" id="p-controls" role="tabpanel" aria-labelledby="t-controls"
+           data-print-title="01 · Control model">
+    <p class="lead">Four controls, positioned by <em>when</em> they act relative to the reload. Two run before the
+      change window, two after — and a feedback loop turns every upgrade into input for the next one.
+      Select a stage on the timeline.</p>
+
+    <div class="spine">
+      <svg viewBox="0 0 1000 220" role="img" aria-label="Control timeline across the change window">
+        <path d="M900 78 C 940 30, 120 8, 96 62" fill="none" stroke="#6e5e30" stroke-width="1.4" stroke-dasharray="5 5"/>
+        <polygon points="96,62 92,50 104,54" fill="#c9a552"/>
+        <g class="stage" data-k="loop" tabindex="0" role="button" aria-label="Feedback loop">
+          <rect x="452" y="6" width="96" height="26" rx="7" fill="#16202e" stroke="#31404f"/>
+          <rect class="halo" x="452" y="6" width="96" height="26" rx="7" fill="#221d0f" stroke="#6e5e30"/>
+          <text x="500" y="24" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11"
+                fill="#c9a552" letter-spacing="1">FEEDBACK</text>
+        </g>
+
+        <line x1="60" y1="120" x2="940" y2="120" stroke="#31404f" stroke-width="1.5"/>
+        <line x1="500" y1="72" x2="500" y2="168" stroke="#ef5f6b" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <text x="500" y="186" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10.5"
+              fill="#ef5f6b" letter-spacing="1">RELOAD / ISSU</text>
+        <text x="500" y="202" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5"
+              fill="#5d6b7c" letter-spacing="1">T-0</text>
+
+        <g class="stage sel" data-k="pred" tabindex="0" role="button" aria-label="Predictive control">
+          <rect class="halo" x="52" y="72" width="176" height="60" rx="11" fill="#1c1830" stroke="#3b3269"/>
+          <circle cx="140" cy="120" r="9" fill="#1c1830" stroke="#9585d8" stroke-width="2"/>
+          <circle cx="140" cy="120" r="3" fill="#9585d8"/>
+          <text x="140" y="98" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#9585d8">PREDICTIVE</text>
+          <text x="140" y="150" text-anchor="middle" font-size="11.5" fill="#8b9aab">Risk report</text>
+          <text x="140" y="166" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" fill="#5d6b7c">T-7d</text>
+        </g>
+        <g class="stage" data-k="prev" tabindex="0" role="button" aria-label="Preventive control">
+          <rect class="halo" x="252" y="72" width="176" height="60" rx="11" fill="#12251f" stroke="#265448"/>
+          <circle cx="340" cy="120" r="9" fill="#12251f" stroke="#4fb3a5" stroke-width="2"/>
+          <circle cx="340" cy="120" r="3" fill="#4fb3a5"/>
+          <text x="340" y="98" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#4fb3a5">PREVENTIVE</text>
+          <text x="340" y="150" text-anchor="middle" font-size="11.5" fill="#8b9aab">Baseline + gate</text>
+          <text x="340" y="166" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" fill="#5d6b7c">T-1h</text>
+        </g>
+        <g class="stage" data-k="detc" tabindex="0" role="button" aria-label="Detective control">
+          <rect class="halo" x="572" y="72" width="176" height="60" rx="11" fill="#132234" stroke="#24425f"/>
+          <circle cx="660" cy="120" r="9" fill="#132234" stroke="#5aa0e0" stroke-width="2"/>
+          <circle cx="660" cy="120" r="3" fill="#5aa0e0"/>
+          <text x="660" y="98" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#5aa0e0">DETECTIVE</text>
+          <text x="660" y="150" text-anchor="middle" font-size="11.5" fill="#8b9aab">Pre/post diff</text>
+          <text x="660" y="166" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" fill="#5d6b7c">T+15m</text>
+        </g>
+        <g class="stage" data-k="corr" tabindex="0" role="button" aria-label="Corrective control">
+          <rect class="halo" x="772" y="72" width="176" height="60" rx="11" fill="#2a2013" stroke="#4a3a1f"/>
+          <circle cx="860" cy="120" r="9" fill="#2a2013" stroke="#e79a45" stroke-width="2"/>
+          <circle cx="860" cy="120" r="3" fill="#e79a45"/>
+          <text x="860" y="98" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#e79a45">CORRECTIVE</text>
+          <text x="860" y="150" text-anchor="middle" font-size="11.5" fill="#8b9aab">Guided fix</text>
+          <text x="860" y="166" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" fill="#5d6b7c">T+30m</text>
+        </g>
+      </svg>
+      <div class="spinehint">select a stage &middot; the loop feeds every upgrade back into the next risk report</div>
+    </div>
+
+    <div class="detail d-pred" id="detail"></div>
+  </section>
+
+  <!-- ============ 02 THE CASE ============ -->
+  <section class="panel" id="p-case" role="tabpanel" aria-labelledby="t-case"
+           data-print-title="02 · The case">
+    <div class="calcnote">
+      <p><b>Enter our real numbers.</b> These four boxes are the only figures on this page that need input —
+        everything else is fact-checked or explicitly marked as an estimate. Nothing here is pre-filled,
+        because a made-up number is exactly what this programme exists to prevent.</p>
+    </div>
+
+    <div class="inputs">
+      <div class="inp">
+        <label for="inDevices">Nexus devices in scope</label>
+        <input id="inDevices" type="number" min="0" placeholder="—" value="" inputmode="numeric">
+      </div>
+      <div class="inp">
+        <label for="inFreq">Upgrade events per device, per year</label>
+        <input id="inFreq" type="number" min="0" step="0.5" placeholder="—" value="" inputmode="decimal">
+      </div>
+      <div class="inp">
+        <label for="inMins">Manual pre/post review, minutes per device</label>
+        <input id="inMins" type="number" min="0" placeholder="—" value="" inputmode="numeric">
+      </div>
+      <div class="inp">
+        <label for="inIncidents">Incidents traced to upgrade drift, last 12&nbsp;months</label>
+        <input id="inIncidents" type="number" min="0" placeholder="—" value="" inputmode="numeric">
+      </div>
+    </div>
+
+    <div class="derived">
+      <div class="dv">
+        <div class="n empty" id="dvUpgrades">—</div>
+        <div class="l"><b>device-upgrades per year</b> — every one needs a pre and post capture compared</div>
+      </div>
+      <div class="dv">
+        <div class="n empty" id="dvHours">—</div>
+        <div class="l"><b>engineer-hours per year</b> currently spent comparing output by eye</div>
+      </div>
+      <div class="dv">
+        <div class="n empty" id="dvInc">—</div>
+        <div class="l"><b>incidents last year</b> that a pre/post control is designed to catch at the change window</div>
+      </div>
+    </div>
+    <div class="srcnote" style="margin-top:12px">
+      <b>Honest framing:</b> the tool does not remove all of that time — an engineer still reads and signs off
+      the findings. What changes is that the comparison itself becomes complete and deterministic instead of
+      partial and manual, and the reading happens against a ranked list rather than raw output.
+    </div>
+
+    <div class="hr"></div>
+
+    <div class="cmp">
+      <div class="box now">
+        <div class="eyebrow">How an upgrade goes today</div>
+        <h3>Manual, reactive, unevidenced</h3>
+        <ul class="plain">
+          <li>Show-command output saved to Notepad, compared by eye across ~19 commands</li>
+          <li>One missing line in a 3,000-line config is invisible to a tired reader</li>
+          <li>Operational state — adjacencies, VTEP peers, prefix counts — rarely compared at all</li>
+          <li>Problems surface when an application team calls, not at the change window</li>
+          <li>Root cause takes hours of hunting; the fix depends on who is on shift</li>
+          <li>No durable record that the device was healthy before and after</li>
+        </ul>
+      </div>
+      <div class="box then">
+        <div class="eyebrow">Where we are heading</div>
+        <h3>Controlled, evidenced, repeatable</h3>
+        <ul class="plain">
+          <li>Known risks for the target release identified <em>before</em> the change window</li>
+          <li>Every command compared deterministically — config <em>and</em> operational state</li>
+          <li>Scattered symptoms correlated into one probable root cause</li>
+          <li>Config loss comes back with paste-ready remediation</li>
+          <li>Engineer sign-off recorded per finding — an audit trail, not a memory</li>
+          <li>Each upgrade improves the rule base for the next one</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <div class="eyebrow">What we will measure</div>
+    <p class="lead" style="font-size:13.5px;margin-bottom:12px">Deliberately shown as <em>targets to baseline</em>,
+      not as results. No percentage improvement is claimed anywhere on this page, because we have not measured
+      one yet.</p>
+    <table>
+      <thead><tr><th>Measure</th><th>Today</th><th>Target</th></tr></thead>
+      <tbody>
+        <tr><td class="metric">Time to compare pre vs post, per device</td>
+            <td class="small">Manual review of ~19 command outputs</td>
+            <td class="small">Seconds, deterministic <span class="tbd">baseline to be measured</span></td></tr>
+        <tr><td class="metric">Config drift detected after upgrade</td>
+            <td class="small">Only what a reader happens to notice</td>
+            <td class="small">Every differing line, every device</td></tr>
+        <tr><td class="metric">Operational state verified (IS-IS / BGP / NVE)</td>
+            <td class="small">Ad hoc, if time allows</td>
+            <td class="small">Every upgrade, same command set</td></tr>
+        <tr><td class="metric">Time to probable root cause</td>
+            <td class="small">Manual correlation across outputs</td>
+            <td class="small">Correlated at report time <span class="tbd">to be measured</span></td></tr>
+        <tr><td class="metric">Upgrades with a recorded pre/post baseline</td>
+            <td class="small">Not consistently retained</td>
+            <td class="small">100% of change windows</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============ 03 ROADMAP & EFFORT ============ -->
+  <section class="panel" id="p-road" role="tabpanel" aria-labelledby="t-road"
+           data-print-title="03 · Roadmap &amp; effort">
+    <p class="lead">Three steps. Step 1 exists and can be demonstrated today. Each step is useful on its own —
+      nothing depends on finishing the whole programme. Select a step for detail and assumptions.</p>
+
+    <div class="steps" style="margin-top:18px">
+      <button class="step s1" aria-expanded="true">
+        <div class="sbar"></div>
+        <div class="shd">
+          <span class="chev">&minus;</span>
+          <div class="snum">STEP 01 · AVAILABLE NOW</div>
+          <h3>Browser prototype</h3>
+          <div class="sdesc">Paste pre and post, get a diff with explanation and fix. Runs entirely client-side.</div>
+          <div class="effort"><span class="en">Done</span><span class="el">built &amp; demonstrable — no approval needed</span></div>
+        </div>
+        <div class="sbody">
+          <ul>
+            <li>Self-contained page — no server, no install, nothing to approve</li>
+            <li>Parsers written in-house for our own 19-command capture set</li>
+            <li>Config diff, operational-state comparison, symptom correlation, paste-ready fixes</li>
+            <li>Engineer sign-off per finding (accept / flag / roll back)</li>
+            <li>Configs never leave the machine — processed in the browser</li>
+          </ul>
+          <h4>Known limit</h4>
+          <ul><li>Only the commands we coded for; if output format differs on a release, the parser needs tuning.
+            This is exactly what Step 2 removes.</li></ul>
+        </div>
+      </button>
+
+      <button class="step s2" aria-expanded="false">
+        <div class="sbar"></div>
+        <div class="shd">
+          <span class="chev">+</span>
+          <div class="snum">STEP 02 · NEEDS WSL OR A LINUX HOST</div>
+          <h3>Cisco pyATS / Genie behind it</h3>
+          <div class="sdesc">Replace in-house parsers with Cisco's own library. Same interface, far wider coverage.</div>
+          <div class="effort"><span class="en">8–12 days</span><span class="el">engineer-days, part-time over ~3–4 weeks</span></div>
+        </div>
+        <div class="sbody">
+          <ul>
+            <li>Cisco pyATS/Genie does the parsing — Cisco-maintained, free, open source</li>
+            <li>Coverage moves from our 19 commands to Cisco's full parser set, across NX-OS, IOS-XE and IOS-XR</li>
+            <li>Parser maintenance becomes Cisco's job, not ours</li>
+            <li>Our differentiator stays on top: the <em>why</em>, the <em>fix</em>, the evidence stamps</li>
+            <li>Runs as a small internal service; the team still just uses a browser</li>
+          </ul>
+          <h4>How the estimate breaks down</h4>
+          <ul>
+            <li>Environment set-up (WSL or VM, Python, pyATS install): ~1 day</li>
+            <li>Service that accepts a capture and returns parsed structure: ~2–3 days</li>
+            <li>Mapping Genie output into the existing rule and finding model: ~3–5 days</li>
+            <li>Testing and tuning against our real captures: ~2–3 days</li>
+          </ul>
+          <h4>Assumptions</h4>
+          <ul>
+            <li>WSL approval or a VM is granted without a long procurement cycle</li>
+            <li>Package access (or an internal mirror) is available</li>
+            <li>Estimate is effort, not elapsed time — this is alongside BAU work</li>
+          </ul>
+        </div>
+      </button>
+
+      <button class="step s3" aria-expanded="false">
+        <div class="sbar"></div>
+        <div class="shd">
+          <span class="chev">+</span>
+          <div class="snum">STEP 03 · PREDICTIVE</div>
+          <h3>Know before the change window</h3>
+          <div class="sdesc">Match our config against the target release's known issues, and learn from our own history.</div>
+          <div class="effort"><span class="en">15–25 days</span><span class="el">engineer-days · scope-dependent</span></div>
+        </div>
+        <div class="sbody">
+          <ul>
+            <li>Read the target release's notes and caveat list, match against our actual running config</li>
+            <li>Flag only known issues that apply to features we really run</li>
+            <li>Capture Cisco's own upgrade compatibility check into the risk report</li>
+            <li>Recurring drift across past upgrades graduates into a predictive rule</li>
+            <li>Risk report attaches to the change record, so go/no-go is evidenced</li>
+          </ul>
+          <h4>Assumptions and dependencies</h4>
+          <ul>
+            <li>Estimate is a range because bug-data access is the unknown — with a Cisco API this is far quicker
+              than parsing notes by hand</li>
+            <li>Needs a body of Step 1/2 captures first; the historical pattern only exists once we start keeping it</li>
+            <li>Optional later: automated capture over SSH and fleet-wide scheduled runs — deliberately not in scope now</li>
+          </ul>
+        </div>
+      </button>
+    </div>
+
+    <div class="srcnote">
+      <b>Estimates, not commitments.</b> These are my engineering estimates based on the work already done in
+      Step 1, and they assume part-time effort alongside BAU. They are stated as ranges because that is honest;
+      I would rather revise them against real progress than defend a single confident number.
+      <br><br>
+      <b>Deliberate choice — we are not rebuilding Genie.</b> Cisco has maintained pyATS/Genie for years and gives
+      it away free. Rebuilding a parser library would cost years and leave us permanently behind. We use it as the
+      engine and spend our effort where nothing exists yet: turning a difference into a diagnosis and a fix.
+    </div>
+  </section>
+
+  <!-- ============ 04 WHAT WE NEED ============ -->
+  <section class="panel" id="p-req" role="tabpanel" aria-labelledby="t-req"
+           data-print-title="04 · What we need">
+    <div class="cost">
+      <p><b>No software cost and no licence to buy.</b> Cisco pyATS/Genie is free and installed from the public
+        Python package index. The ask is infrastructure and permissions only.</p>
+    </div>
+
+    <div class="reqgrid">
+      <div class="req">
+        <h3><span class="rn">01</span> Compute</h3>
+        <ul>
+          <li>One small Linux VM — Ubuntu LTS is the simplest choice</li>
+          <li>Cisco's stated minimum is 1 vCPU and 1 GB RAM; we would ask for <b>2 vCPU / 4 GB RAM / ~40 GB disk</b> to run it comfortably as a shared service</li>
+          <li>Windows is <b>not</b> supported by pyATS — Cisco's own guidance is Linux, macOS, Docker or WSL</li>
+        </ul>
+      </div>
+      <div class="req">
+        <h3><span class="rn">02</span> Software</h3>
+        <ul>
+          <li>Python 3 (Cisco's getting-started guide lists 3.7–3.10; current packages ship for newer versions too, so we confirm the exact version against release notes at install time)</li>
+          <li>pyATS + Genie, installed with pip</li>
+          <li>Ubuntu build packages: python3-venv, python3-dev, build-essential</li>
+          <li>A lightweight Python web service to serve the existing dashboard</li>
+        </ul>
+      </div>
+      <div class="req">
+        <h3><span class="rn">03</span> Network access</h3>
+        <ul>
+          <li><b>Most likely blocker.</b> The host needs outbound HTTPS to the Python package index and GitHub to install and update</li>
+          <li>If external package access is blocked, an internal package mirror works equally well</li>
+          <li>Inbound: engineers' browsers reach the service on an internal port</li>
+        </ul>
+      </div>
+      <div class="req">
+        <h3><span class="rn">04</span> Access and permissions</h3>
+        <ul>
+          <li>Administrator rights on the VM to install packages</li>
+          <li>If we pilot on a laptop instead: approval to enable WSL <b>— this is the only thing needed today</b></li>
+          <li>Later, for automated bug verification: a Cisco account with Bug Search access</li>
+        </ul>
+      </div>
+      <div class="req">
+        <h3><span class="rn">05</span> What we do <em>not</em> need</h3>
+        <ul class="none">
+          <li>No licence, no procurement, no vendor contract</li>
+          <li>No SSH access from the service to production switches — captures are pasted or uploaded as text, so the tool never touches a live device</li>
+          <li>No Python skills for the team using it — they use a browser</li>
+          <li>No data leaves our network: Cisco states the pyATS ecosystem never collects or streams data back to Cisco</li>
+        </ul>
+      </div>
+      <div class="req">
+        <h3><span class="rn">06</span> Data handling</h3>
+        <ul>
+          <li>Captures include full running-config, which contains sensitive material (community strings, hashes)</li>
+          <li>Store snapshots on internal storage with defined retention; never in a public repository</li>
+          <li>Step 1 avoids this entirely — nothing is stored or transmitted at all</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="opt">
+      <div class="optbox pick">
+        <div class="optlab">RECOMMENDED FIRST — TODAY'S ASK</div>
+        <h3>Option A — pilot on a laptop with WSL</h3>
+        <p>Costs nothing and needs no server. Only ask: permission to enable WSL. We prove the full Genie chain
+          works on our own captures, then use that result to justify the VM.</p>
+      </div>
+      <div class="optbox">
+        <div class="optlab">THEN, IF IT PROVES OUT</div>
+        <h3>Option B — shared internal VM</h3>
+        <p>Once proven, move to a small Linux VM so the whole team uses one service with a consistent rule base
+          and a shared record of every upgrade.</p>
+      </div>
+    </div>
+
+    <div class="srcnote">
+      <b>Sources:</b> platform support, sizing, Python versions, connectivity and the no-telemetry statement are
+      taken from Cisco's official pyATS prerequisites documentation on DevNet, and the library itself is published
+      at <a href="https://github.com/CiscoTestAutomation">github.com/CiscoTestAutomation</a>. Anything
+      version-specific is re-checked against current documentation at install time rather than assumed.
+    </div>
+  </section>
+
+  <!-- ============ 05 RISKS ============ -->
+  <section class="panel" id="p-risk" role="tabpanel" aria-labelledby="t-risk"
+           data-print-title="05 · Risks">
+    <p class="lead">Every one of these is a reason the programme could fail or cause harm. They are listed here
+      deliberately — a proposal that hides its own risks is not one you should approve.</p>
+
+    <div style="margin-top:18px">
+      <div class="risk">
+        <div class="rhd"><span class="rsev rs-high">HIGH</span>
+          <div><h3>Key-person dependency</h3>
+            <p class="rd">Right now one engineer understands the rule base and the code. If I move on, the team
+              inherits something they cannot maintain — which is worse than having no tool.</p></div></div>
+        <div class="rmit"><span class="ml">Mitigation</span>Everything lives in the repository, not on a laptop.
+          Rules are written to be readable by any network engineer. Step 2 hands parser maintenance to Cisco,
+          which is the largest and most brittle part. A second engineer should review and extend rules from the
+          start, and the pilot is the right time to pick them.</div>
+      </div>
+
+      <div class="risk">
+        <div class="rhd"><span class="rsev rs-high">HIGH</span>
+          <div><h3>False confidence in the tool's explanation</h3>
+            <p class="rd">A plausible but wrong cause is more dangerous than no cause at all, because it sends an
+              engineer down the wrong path during a change window. This has already happened once in development.</p></div></div>
+        <div class="rmit"><span class="ml">Mitigation</span>The two-stamp evidence model exists specifically for
+          this: deterministic findings are marked as facts, version-specific causes are marked
+          <em>verify required</em> and must be confirmed against the vendor's own record. The tool never applies a
+          change; a named engineer signs off every finding. See the "Why it can be trusted" tab.</div>
+      </div>
+
+      <div class="risk">
+        <div class="rhd"><span class="rsev rs-med">MEDIUM</span>
+          <div><h3>Parser drift as NX-OS output changes</h3>
+            <p class="rd">In Step 1 the parsers are ours. If a release changes an output format, a command can
+              silently show "no change" when something did change — a false negative, the worst kind of failure
+              for a detective control.</p></div></div>
+        <div class="rmit"><span class="ml">Mitigation</span>This is the single strongest reason to complete
+          Step 2: Cisco maintains its parsers across releases, so drift stops being our problem. Until then,
+          every command that produced no findings is listed explicitly so a silent gap is visible rather than
+          assumed.</div>
+      </div>
+
+      <div class="risk">
+        <div class="rhd"><span class="rsev rs-med">MEDIUM</span>
+          <div><h3>Rule base needs ongoing curation</h3>
+            <p class="rd">The value sits in the rules, and rules go stale. Without deliberate upkeep the tool
+              slowly becomes a diff viewer with outdated advice attached.</p></div></div>
+        <div class="rmit"><span class="ml">Mitigation</span>Treat rule updates as part of post-change review:
+          each upgrade that surfaces a new failure mode adds one rule. That is the feedback loop on the control
+          timeline, and it is a few minutes per change window, not a project.</div>
+      </div>
+
+      <div class="risk">
+        <div class="rhd"><span class="rsev rs-med">MEDIUM</span>
+          <div><h3>Sensitive data in captures</h3>
+            <p class="rd">A full running-config contains community strings, password hashes and topology detail.
+              Stored carelessly, the tool becomes a security problem rather than a control.</p></div></div>
+        <div class="rmit"><span class="ml">Mitigation</span>Step 1 stores and transmits nothing — it runs in the
+          browser. For Step 2, snapshots stay on internal storage with a defined retention period and never go
+          into a public repository. This should be agreed before the first capture is saved, not after.</div>
+      </div>
+
+      <div class="risk">
+        <div class="rhd"><span class="rsev rs-low">LOW</span>
+          <div><h3>Corporate package access blocked</h3>
+            <p class="rd">If the host cannot reach the public Python package index, pyATS cannot be installed
+              the normal way and Step 2 stalls.</p></div></div>
+        <div class="rmit"><span class="ml">Mitigation</span>An internal package mirror works equally well, and a
+          Docker image is an alternative route. Worth confirming with IT before the pilot starts rather than
+          discovering it mid-install.</div>
+      </div>
+
+      <div class="risk">
+        <div class="rhd"><span class="rsev rs-low">LOW</span>
+          <div><h3>Scope creep toward automated remediation</h3>
+            <p class="rd">The natural next request is "why not let it fix things automatically?" On a production
+              fabric that converts a safety tool into a risk.</p></div></div>
+        <div class="rmit"><span class="ml">Mitigation</span>Out of scope by design, and stated as such. The tool
+          proposes; a named engineer decides. Automated capture over SSH is also deliberately deferred, so the
+          service never needs credentials to production devices.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 06 TRUST ============ -->
+  <section class="panel" id="p-trust" role="tabpanel" aria-labelledby="t-trust"
+           data-print-title="06 · Why it can be trusted">
+    <p class="lead">A tool that explains <em>why</em> something broke is only useful if we can tell the difference
+      between a fact and a guess. Every finding carries its source and one of two stamps.</p>
+
+    <div class="ev" style="margin-top:18px">
+      <div class="evbox ev-ok">
+        <h3>VERIFIED BY DESIGN</h3>
+        <p>Deterministic. Either a plain difference between our own two captures, or a consequence of how the
+          protocol is defined. Safe to act on.</p>
+        <div class="ex">e.g. a config line present before and missing after<br>
+          e.g. VXLAN encapsulation overhead against the interface MTU</div>
+      </div>
+      <div class="evbox ev-vr">
+        <h3>VERIFY REQUIRED</h3>
+        <p>Anything that depends on a specific release or platform behaving a certain way. The tool flags it and
+          points the engineer at the vendor's own record — it never states it as fact.</p>
+        <div class="ex">e.g. "this release resets that setting during migration"<br>
+          &rarr; confirm on the Cisco Bug Search Tool and the target release notes</div>
+      </div>
+    </div>
+
+    <div class="story">
+      <h3>Why this distinction exists — a real example from building it</h3>
+      <p>During development the tool produced a confident explanation that a specific NX-OS release reset interface
+        MTU during config migration. It read plausibly and it fitted the symptoms perfectly.</p>
+      <p>We checked it against the actual Cisco release notes for that version — open issues, resolved issues and
+        known issues. <b>No such caveat exists.</b> The explanation was invented. What the release notes did contain
+        were several genuine post-upgrade drift bugs, so the underlying pattern was real; the specific attribution
+        was not.</p>
+      <p>That is precisely the failure mode this programme has to guard against, because a plausible wrong cause
+        sends an engineer down the wrong path during a change window. The two-stamp model is the direct result:
+        deterministic findings are presented as facts, and version-specific causes are presented as claims to be
+        verified against the vendor's own record before anyone acts on them.</p>
+    </div>
+
+    <div class="srcnote">
+      <b>Bottom line for governance:</b> the tool never applies a change. It presents the difference, the reasoning,
+      the source of that reasoning, and a proposed fix. A named engineer reviews each finding and records the
+      decision — the same accept / flag / roll-back discipline we already apply to any other control.
+    </div>
+  </section>
+
+  <!-- ============ 07 THE ASK ============ -->
+  <section class="panel" id="p-ask" role="tabpanel" aria-labelledby="t-ask"
+           data-print-title="07 · The ask">
+    <div class="decision">
+      <div class="dnum">Decision required</div>
+      <h2>Approve enabling WSL on my laptop for a time-boxed pilot.</h2>
+      <p>That is the whole ask. It lets me run Cisco's parsing library against our own pre/post captures and prove
+        the full chain works on our fabric — not on a demo.</p>
+      <p>I will come back with the result and either a case for the shared VM, or an honest recommendation to stop.</p>
+    </div>
+
+    <div class="asknot">
+      <div class="ansbox yes">
+        <h3>What this approves</h3>
+        <ul>
+          <li>Enabling WSL (a built-in Windows feature) on one laptop</li>
+          <li>Installing Cisco's free, open-source pyATS/Genie library</li>
+          <li>A time-boxed pilot using captures we already take</li>
+        </ul>
+      </div>
+      <div class="ansbox no">
+        <h3>What this does <em>not</em> approve</h3>
+        <ul>
+          <li>No budget, licence or procurement</li>
+          <li>No server or VM at this stage</li>
+          <li>No access from any tool to production devices</li>
+          <li>No change to how upgrades are currently executed</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="qa">
+      <div class="eyebrow" style="margin-top:22px">Questions you are likely to ask</div>
+
+      <div class="qitem"><button class="qbtn"><span class="qm">+</span>What does this cost?</button>
+        <div class="qans">Nothing in software. pyATS/Genie is free and open source, published by Cisco on the public
+          Python package index. The only cost is my time, estimated at 8–12 engineer-days for Step 2, part-time.</div></div>
+
+      <div class="qitem"><button class="qbtn"><span class="qm">+</span>Why not just buy a tool that does this?</button>
+        <div class="qans">The comparison engine already exists and is free — that is exactly why we are not building
+          or buying one. What no product gives us is the layer on top: an explanation tied to our own fabric design,
+          a paste-ready fix, and a clear separation between verified facts and claims that need checking. That is
+          where the effort goes.</div></div>
+
+      <div class="qitem"><button class="qbtn"><span class="qm">+</span>Can it break something in production?</button>
+        <div class="qans">No. It never connects to a device and never applies a configuration. Captures are pasted
+          or uploaded as text after the fact. The output is advice; an engineer decides and signs off.</div></div>
+
+      <div class="qitem"><button class="qbtn"><span class="qm">+</span>Do our configs leave the company?</button>
+        <div class="qans">No. Step 1 runs entirely in the browser and stores nothing. For Step 2, Cisco states that
+          the pyATS ecosystem never collects or streams data back to Cisco, and the service would run on our own
+          internal host.</div></div>
+
+      <div class="qitem"><button class="qbtn"><span class="qm">+</span>Does the team need to learn Python?</button>
+        <div class="qans">No. They paste two captures into a web page and read the result. Python runs behind the
+          scenes and is only needed by whoever maintains the service.</div></div>
+
+      <div class="qitem"><button class="qbtn"><span class="qm">+</span>What happens if you leave?</button>
+        <div class="qans">That is the highest risk on the risks tab, and I have not hidden it. Everything is in the
+          repository, the rules are written to be readable by any network engineer, and Step 2 moves the hardest
+          part — parser maintenance — to Cisco. A second engineer should be involved from the pilot onwards.</div></div>
+
+      <div class="qitem"><button class="qbtn"><span class="qm">+</span>How do I know the explanations are correct?</button>
+        <div class="qans">You do not have to take them on trust — that is the point of the two-stamp model. Findings
+          are marked either as deterministic facts or as claims requiring verification against Cisco's own bug list
+          and release notes. During development one invented explanation was caught exactly this way, and the model
+          is the result.</div></div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <b>Upgrade Assurance Programme</b> — control model, business case, roadmap, requirements, risks and request.
+    Step 1 is demonstrable today and needs nothing installed. Facts about Cisco pyATS/Genie come from Cisco's
+    published documentation; anything version-specific is verified against current release notes rather than
+    assumed. Effort figures are engineering estimates stated as ranges, not commitments.
+    <br><br><b>Tip:</b> use your browser's Print / Save as PDF to produce a shareable copy — every section prints,
+    including the ones behind tabs.
+  </div>
+</div>
+
+<script>
+/* ---------------- control detail content ---------------- */
+var CONTROLS = {
+  pred:{cls:"d-pred",tag:"t-pred",label:"PREDICTIVE",when:"Before the change is approved \u00b7 T-7 days",
+    title:"Know what is at risk before we commit",
+    q:"\u201cIf we run this upgrade, what could break on this box?\u201d",
+    points:["Read the target release's known issues and caveats, and match them against our actual running config \u2014 flag only what applies to features we really run.",
+      "Apply design rules that hold regardless of release: for example, fabric uplink MTU against VXLAN encapsulation overhead.",
+      "Capture Cisco's own upgrade compatibility check as part of the record.",
+      "Use our own history: drift that recurred on previous upgrades of this platform becomes a predictive rule.",
+      "Output is a risk report attached to the change record \u2014 so go / no-go is an evidenced decision."],
+    side:{h:"WHAT IT PRODUCES",body:"A short, ranked risk list for this device and this target release, with the evidence for each item \u2014 not a generic checklist."},
+    status:[["p-later","Step 3"]]},
+  prev:{cls:"d-prev",tag:"t-prev",label:"PREVENTIVE",when:"At the start of the change window \u00b7 T-1 hour",
+    title:"Lock a baseline and gate the change",
+    q:"\u201cDo we have a clean record of how this device looked before we touched it?\u201d",
+    points:["The pre-upgrade capture becomes mandatory and structured \u2014 the same command set every time, not whatever the engineer remembers.",
+      "That baseline is the reference everything after is measured against. Without it, no comparison is possible at all.",
+      "Risks identified in the predictive step carry an explicit mitigation line in the method of procedure.",
+      "High-risk items get an explicit go / no-go decision before the reload, rather than being discovered afterwards."],
+    side:{h:"WHY THIS IS THE CHEAPEST CONTROL",body:"It costs one command run. Everything downstream \u2014 detection, correlation, remediation \u2014 is impossible without it, and it is the step most often skipped under time pressure."},
+    status:[["p-live","Step 1 \u2014 available now"]]},
+  detc:{cls:"d-detc",tag:"t-detc",label:"DETECTIVE",when:"As soon as the device is back \u00b7 T+15 minutes",
+    title:"Find every difference, not just the visible ones",
+    q:"\u201cWhat actually changed \u2014 including the things nobody thought to look at?\u201d",
+    points:["Compare pre and post across the full command set: configuration and operational state together.",
+      "Operational state is where silent failures hide \u2014 IS-IS adjacencies, BGP overlay sessions, VTEP peers, prefix counts, interface status.",
+      "Correlate scattered symptoms into one probable root cause instead of a list of unrelated alarms.",
+      "Classify by severity so the engineer reads the six that matter, not the sixty that do not.",
+      "Expected changes \u2014 software version, uptime, clock \u2014 are recognised and set aside rather than raising noise."],
+    side:{h:"THE CORRELATION POINT",body:"A dropped uplink MTU, a lost IS-IS adjacency, an idle BGP session and a missing VTEP peer are four alarms \u2014 or one root cause. Reporting them as one chain is the difference between minutes and hours."},
+    status:[["p-live","Step 1 \u2014 available now"],["p-next","Wider coverage at Step 2"]]},
+  corr:{cls:"d-corr",tag:"t-corr",label:"CORRECTIVE",when:"Immediately after detection \u00b7 T+30 minutes",
+    title:"Put it back, with the reasoning shown",
+    q:"\u201cWhat exactly do I paste, and what must I check myself?\u201d",
+    points:["Where configuration was lost, the fix is deterministic \u2014 the removed lines are handed back as paste-ready config.",
+      "Where the symptom is control-plane behaviour, the tool gives the probable cause and the verification commands, and leaves the decision to the engineer.",
+      "Every finding carries its evidence source and whether it is a verified fact or a claim to confirm with the vendor.",
+      "Nothing is applied automatically. The engineer accepts, flags or rolls back \u2014 and that decision is recorded."],
+    side:{h:"THE LINE WE DO NOT CROSS",body:"Automatic remediation on a production fabric is not a feature, it is a risk. The tool proposes; a named engineer decides and signs off."},
+    status:[["p-live","Step 1 \u2014 available now"]]},
+  loop:{cls:"d-loop",tag:"t-loop",label:"FEEDBACK LOOP",when:"After every change window",
+    title:"Each upgrade makes the next one safer",
+    q:"\u201cHow does this get better instead of staying the same?\u201d",
+    points:["Every completed upgrade adds a pre/post pair to our own record \u2014 evidence we currently do not keep.",
+      "A failure mode seen once becomes a rule, so it is caught automatically the next time on any device.",
+      "Drift that recurs across upgrades graduates into the predictive step \u2014 the loop closing back to the start.",
+      "Knowledge moves out of individual engineers' heads and into a shared, reviewable rule base.",
+      "Parser and rule gaps found on real captures are fixed once and benefit the whole team."],
+    side:{h:"WHY THIS MATTERS MOST",body:"The tooling is replaceable. The accumulated record of how our fabric actually behaves across upgrades is not \u2014 and it only exists if we start keeping it."},
+    status:[["p-next","Starts with Step 1 captures"]]}
+};
+
+function renderDetail(k){
+  var c=CONTROLS[k], d=document.getElementById("detail");
+  d.className="detail "+c.cls;
+  var pts=c.points.map(function(p){return "<li>"+p+"</li>";}).join("");
+  var st=(c.status||[]).map(function(s){return '<span class="pill '+s[0]+'">'+s[1]+'</span>';}).join("");
+  d.innerHTML='<div class="dhead"><span class="dtag '+c.tag+'">'+c.label+'</span><h3>'+c.title+
+    '</h3><span class="dwhen">'+c.when+'</span></div><div class="dq">'+c.q+'</div>'+
+    '<div class="dcols"><div><ul class="ticks">'+pts+'</ul>'+(st?'<div class="statusrow">'+st+'</div>':'')+
+    '</div><div class="side"><div class="eyebrow">'+c.side.h+'</div><p>'+c.side.body+'</p></div></div>';
+}
+function selectStage(g){
+  document.querySelectorAll(".stage").forEach(function(s){s.classList.remove("sel");});
+  g.classList.add("sel"); renderDetail(g.dataset.k);
+}
+document.querySelectorAll(".stage").forEach(function(g){
+  g.addEventListener("click",function(){selectStage(g);});
+  g.addEventListener("keydown",function(e){
+    if(e.key==="Enter"||e.key===" "){e.preventDefault();selectStage(g);}});
+});
+renderDetail("pred");
+
+/* tabs */
+var tabs=Array.prototype.slice.call(document.querySelectorAll(".tab"));
+tabs.forEach(function(t){
+  t.addEventListener("click",function(){
+    tabs.forEach(function(x){x.setAttribute("aria-selected","false");});
+    t.setAttribute("aria-selected","true");
+    document.querySelectorAll(".panel").forEach(function(p){p.classList.remove("on");});
+    document.getElementById(t.getAttribute("aria-controls")).classList.add("on");
+  });
+  t.addEventListener("keydown",function(e){
+    var i=tabs.indexOf(t),n=tabs.length;
+    if(e.key==="ArrowRight"){tabs[(i+1)%n].focus();tabs[(i+1)%n].click();}
+    if(e.key==="ArrowLeft"){tabs[(i-1+n)%n].focus();tabs[(i-1+n)%n].click();}
+  });
+});
+
+/* roadmap accordion */
+document.querySelectorAll(".step").forEach(function(s){
+  s.addEventListener("click",function(){
+    var open=s.getAttribute("aria-expanded")==="true";
+    s.setAttribute("aria-expanded",open?"false":"true");
+    s.querySelector(".chev").textContent=open?"+":"\u2212";
+  });
+});
+
+/* Q&A accordion */
+document.querySelectorAll(".qbtn").forEach(function(b){
+  b.addEventListener("click",function(){
+    var it=b.parentElement, open=it.classList.contains("open");
+    it.classList.toggle("open",!open);
+    b.querySelector(".qm").textContent=open?"+":"\u2212";
+  });
+});
+
+/* scale calculator */
+function num(id){
+  var v=parseFloat(document.getElementById(id).value);
+  return (isNaN(v)||v<0)?null:v;
+}
+function setVal(id,val,fmt){
+  var el=document.getElementById(id);
+  if(val===null){el.textContent="\u2014";el.classList.add("empty");}
+  else{el.textContent=fmt(val);el.classList.remove("empty");}
+}
+function fmtInt(n){return Math.round(n).toLocaleString();}
+function recalc(){
+  var d=num("inDevices"), f=num("inFreq"), m=num("inMins"), i=num("inIncidents");
+  var upg=(d!==null&&f!==null)?d*f:null;
+  setVal("dvUpgrades",upg,fmtInt);
+  var hrs=(upg!==null&&m!==null)?upg*m/60:null;
+  setVal("dvHours",hrs,fmtInt);
+  setVal("dvInc",i,fmtInt);
+}
+["inDevices","inFreq","inMins","inIncidents"].forEach(function(id){
+  document.getElementById(id).addEventListener("input",recalc);
+});
+recalc();
+</script>
+</body>
+</html>
