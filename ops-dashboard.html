@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Network Operations — Daily Briefing</title>
+
+<!--
+  ==========================================================================
+  ALL DATA LIVES IN ONE PLACE: search for  "var DATA ="  near the bottom.
+  Replace the sample values there with real figures and the whole dashboard
+  updates. Nothing else needs editing.
+  Remove the "SAMPLE DATA" banner by deleting the <div class="samplebar">.
+  ==========================================================================
+-->
+
+<style>
+:root{
+  --paper:#f7f5f0; --card:#fffefb; --ink:#1b2230; --ink2:#3d4757;
+  --muted:#6c7789; --faint:#9aa4b2; --rule:#e2ddd2; --rule2:#cfc8ba;
+
+  --brand:#14524b;
+  --apac:#6b4f9e; --apac-bg:#f2eefb;
+  --emea:#1a6296; --emea-bg:#eaf3fa;
+  --naft:#a35a22; --naft-bg:#fbf0e7;
+
+  --crit:#b0342a; --crit-bg:#fbeceb; --crit-bd:#f0cdc9;
+  --warn:#a4741a; --warn-bg:#fcf4e3; --warn-bd:#eddfbd;
+  --ok:#2b7047;   --ok-bg:#eaf5ee;   --ok-bd:#c8e3d3;
+  --info:#28607f; --info-bg:#eaf2f7;
+
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+  line-height:1.5;font-feature-settings:"tnum" 1}
+.wrap{max-width:1240px;margin:0 auto;padding:18px 20px 70px}
+h1,h2,h3,h4{margin:0}
+::selection{background:#d8e6e3}
+
+/* ---------- sample banner ---------- */
+.samplebar{background:var(--warn-bg);border:1px solid var(--warn-bd);border-left:4px solid var(--warn);
+  border-radius:8px;padding:9px 14px;margin-bottom:16px;font-size:12.5px;color:#6d4d10}
+.samplebar b{color:var(--warn)}
+
+/* ---------- masthead ---------- */
+.mast{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;
+  border-bottom:2px solid var(--ink);padding-bottom:11px;margin-bottom:2px}
+.mast .lockup{display:flex;align-items:center;gap:11px}
+.mast h1{font-size:23px;letter-spacing:-.015em;font-weight:750;line-height:1.1}
+.mast .kick{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--brand);
+  text-transform:uppercase;margin-bottom:3px}
+.mast .when{margin-left:auto;text-align:right}
+.mast .when .d{font-size:13.5px;font-weight:600}
+.mast .when .t{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.05em}
+.subrule{height:1px;background:var(--ink);margin-bottom:18px;opacity:.25}
+
+/* ---------- tri-region strip ---------- */
+.strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:900px){.strip{grid-template-columns:1fr}}
+.rcard{background:var(--card);border:1px solid var(--rule);border-radius:11px;padding:0;overflow:hidden;
+  cursor:pointer;text-align:left;font-family:inherit;color:inherit;width:100%;display:block;
+  transition:box-shadow .15s ease,border-color .15s ease}
+.rcard:hover{border-color:var(--rule2);box-shadow:0 2px 10px rgba(27,34,48,.07)}
+.rcard:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.rcard .band{height:4px}
+.rcard.apac .band{background:var(--apac)} .rcard.emea .band{background:var(--emea)}
+.rcard.naft .band{background:var(--naft)}
+.rhead{display:flex;align-items:baseline;gap:9px;padding:12px 14px 8px}
+.rname{font-size:15.5px;font-weight:700;letter-spacing:.01em}
+.rsites{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.rstat{margin-left:auto;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
+  padding:2px 8px;border-radius:4px;border:1px solid}
+.st-ok{color:var(--ok);background:var(--ok-bg);border-color:var(--ok-bd)}
+.st-warn{color:var(--warn);background:var(--warn-bg);border-color:var(--warn-bd)}
+.st-crit{color:var(--crit);background:var(--crit-bg);border-color:var(--crit-bd)}
+.rnums{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--rule)}
+.rnum{padding:9px 6px 10px;text-align:center;border-right:1px solid var(--rule)}
+.rnum:last-child{border-right:0}
+.rnum .v{font-family:var(--mono);font-size:19px;font-weight:600;line-height:1.1}
+.rnum .k{font-size:9.5px;color:var(--muted);letter-spacing:.03em;margin-top:3px;text-transform:uppercase}
+.rnum.bad .v{color:var(--crit)} .rnum.warnv .v{color:var(--warn)} .rnum.okv .v{color:var(--ok)}
+
+/* ---------- tabs ---------- */
+nav.tabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--rule2);margin-bottom:20px}
+.tab{font-family:var(--sans);font-size:13px;color:var(--muted);background:transparent;border:0;
+  padding:9px 15px;cursor:pointer;position:relative;border-radius:7px 7px 0 0}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--ink);font-weight:650;background:var(--card)}
+.tab[aria-selected="true"]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;
+  background:var(--brand)}
+.tab:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+.tab .dotr{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:middle}
+.tab.apac .dotr{background:var(--apac)} .tab.emea .dotr{background:var(--emea)}
+.tab.naft .dotr{background:var(--naft)}
+.panel{display:none;animation:fade .25s ease}
+.panel.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* ---------- layout ---------- */
+.cols{display:grid;gap:14px}
+.c2{grid-template-columns:1.35fr .65fr}
+.c2e{grid-template-columns:1fr 1fr}
+@media(max-width:1000px){.c2,.c2e{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:11px;overflow:hidden;
+  margin-bottom:14px}
+.chead{display:flex;align-items:center;gap:10px;padding:11px 15px;border-bottom:1px solid var(--rule);
+  background:linear-gradient(180deg,#fdfcf9,#f9f7f2)}
+.chead h3{font-size:13px;font-weight:700;letter-spacing:.02em}
+.chead .note{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:.05em}
+.cbody{padding:13px 15px}
+.cbody.flush{padding:0}
+
+/* ---------- tables ---------- */
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--faint);font-weight:400;padding:9px 12px;border-bottom:1px solid var(--rule);background:#fbfaf7}
+td{padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#fbfaf6}
+td.q{font-weight:650}
+td.n{font-family:var(--mono);text-align:right;font-size:13px}
+td.n.zero{color:var(--faint)}
+td.n.bad{color:var(--crit);font-weight:600}
+td.n.warnv{color:var(--warn);font-weight:600}
+.qtag{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--muted);
+  border:1px solid var(--rule2);border-radius:3px;padding:1px 5px;margin-left:7px}
+
+/* ---------- sla list ---------- */
+.sla{display:flex;gap:11px;align-items:flex-start;padding:10px 15px;border-bottom:1px solid var(--rule)}
+.sla:last-child{border-bottom:0}
+.sla .sev{font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:2px 7px;border-radius:4px;
+  border:1px solid;white-space:nowrap;margin-top:2px}
+.sv-p1{color:#fff;background:var(--crit);border-color:var(--crit)}
+.sv-p2{color:var(--crit);background:var(--crit-bg);border-color:var(--crit-bd)}
+.sv-p3{color:var(--warn);background:var(--warn-bg);border-color:var(--warn-bd)}
+.sla .body{flex:1;min-width:0}
+.sla .id{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.sla .ti{font-size:12.5px;font-weight:600;margin:1px 0 2px}
+.sla .mt{font-size:11.5px;color:var(--muted)}
+.sla .over{font-family:var(--mono);font-size:12px;color:var(--crit);font-weight:600;white-space:nowrap;
+  text-align:right}
+.sla .over span{display:block;font-size:9.5px;color:var(--faint);font-weight:400;letter-spacing:.05em}
+
+/* ---------- upgrade bars ---------- */
+.up{padding:11px 15px;border-bottom:1px solid var(--rule)}
+.up:last-child{border-bottom:0}
+.uphd{display:flex;align-items:baseline;gap:9px;margin-bottom:7px}
+.uphd .site{font-size:12.5px;font-weight:650}
+.uphd .rel{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.uphd .pct{margin-left:auto;font-family:var(--mono);font-size:12px;font-weight:600}
+.bar{height:7px;background:#eeebe4;border-radius:4px;overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.bar .done{background:var(--ok)} .bar .prog{background:var(--warn)} .bar .fail{background:var(--crit)}
+.uplg{display:flex;gap:13px;margin-top:6px;font-size:10.5px;color:var(--muted);flex-wrap:wrap}
+.uplg b{font-family:var(--mono);color:var(--ink2)}
+
+/* ---------- dc health ---------- */
+.dcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:9px;padding:13px 15px}
+.dc{border:1px solid var(--rule);border-radius:8px;padding:9px 11px;background:#fffefc}
+.dc.crit{border-color:var(--crit-bd);background:var(--crit-bg)}
+.dc.warn{border-color:var(--warn-bd);background:var(--warn-bg)}
+.dchd{display:flex;align-items:center;gap:7px}
+.dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.crit{background:var(--crit)}
+.dc .code{font-family:var(--mono);font-size:12px;font-weight:650}
+.dc .city{font-size:10.5px;color:var(--muted);margin-top:1px}
+.dc .m{font-size:10.5px;color:var(--ink2);margin-top:5px;padding-top:5px;border-top:1px solid var(--rule)}
+.dc.crit .m,.dc.warn .m{border-top-color:rgba(0,0,0,.08)}
+
+/* ---------- meetings ---------- */
+.mt{display:flex;gap:12px;padding:10px 15px;border-bottom:1px solid var(--rule);align-items:flex-start}
+.mt:last-child{border-bottom:0}
+.mt.now{background:var(--info-bg)}
+.mt .time{font-family:var(--mono);font-size:11.5px;color:var(--ink2);white-space:nowrap;
+  min-width:88px;padding-top:1px}
+.mt .time b{display:block;font-size:12.5px;color:var(--ink)}
+.mt .info{flex:1;min-width:0}
+.mt .ti{font-size:12.5px;font-weight:650}
+.mt .who{font-size:11px;color:var(--muted);margin-top:2px}
+.mt .rgn{font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:1px 6px;border-radius:3px;
+  white-space:nowrap;margin-top:2px}
+.rg-apac{color:var(--apac);background:var(--apac-bg)}
+.rg-emea{color:var(--emea);background:var(--emea-bg)}
+.rg-naft{color:var(--naft);background:var(--naft-bg)}
+.rg-all{color:var(--muted);background:#f0eee9}
+.nowtag{font-family:var(--mono);font-size:9px;color:var(--info);letter-spacing:.06em}
+
+/* ---------- projects ---------- */
+.proj{padding:12px 15px;border-bottom:1px solid var(--rule)}
+.proj:last-child{border-bottom:0}
+.phd{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.phd .nm{font-size:13px;font-weight:650}
+.rag{font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:2px 7px;border-radius:4px;border:1px solid}
+.rag-g{color:var(--ok);background:var(--ok-bg);border-color:var(--ok-bd)}
+.rag-a{color:var(--warn);background:var(--warn-bg);border-color:var(--warn-bd)}
+.rag-r{color:var(--crit);background:var(--crit-bg);border-color:var(--crit-bd)}
+.phd .own{margin-left:auto;font-size:11px;color:var(--muted)}
+.pmeta{font-size:11.5px;color:var(--muted);margin:4px 0 7px}
+.pbar{height:6px;background:#eeebe4;border-radius:3px;overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--brand)}
+.pfoot{display:flex;gap:12px;margin-top:5px;font-size:10.5px;color:var(--muted);flex-wrap:wrap}
+.pfoot b{font-family:var(--mono);color:var(--ink2)}
+.fut{display:flex;gap:12px;padding:11px 15px;border-bottom:1px solid var(--rule);align-items:flex-start}
+.fut:last-child{border-bottom:0}
+.fut .q{font-family:var(--mono);font-size:10.5px;color:#fff;background:var(--brand);border-radius:4px;
+  padding:3px 8px;white-space:nowrap;margin-top:1px}
+.fut .nm{font-size:12.5px;font-weight:650}
+.fut .ds{font-size:11.5px;color:var(--muted);margin-top:2px}
+
+
+
+/* ---------- improve tab ---------- */
+.secthd{display:flex;align-items:baseline;gap:11px;margin:26px 0 12px}
+.secthd:first-child{margin-top:4px}
+.secthd .n{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--brand);
+  border:1px solid var(--brand);border-radius:4px;padding:2px 7px}
+.secthd h2{font-size:16px;font-weight:700}
+.secthd .sd{margin-left:auto;font-size:11.5px;color:var(--muted)}
+.gap{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+@media(max-width:1000px){.gap{grid-template-columns:1fr}}
+.pain{background:var(--card);border:1px solid var(--rule);border-left:3px solid var(--crit);
+  border-radius:10px;padding:13px 15px}
+.pain h4{font-size:13px;margin-bottom:5px}
+.pain p{font-size:12px;color:var(--muted);margin:0}
+.pain .ct{font-family:var(--mono);font-size:10px;color:var(--crit);letter-spacing:.05em;margin-top:7px;
+  display:block}
+.flowbox{background:var(--card);border:1px solid var(--rule);border-radius:11px;padding:16px 14px 8px}
+.flowscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.flowbox svg{width:100%;height:auto;display:block}
+/* below ~820px the diagram would shrink until its labels are unreadable,
+   so keep it at a legible size and let the user scroll it sideways instead */
+@media(max-width:820px){
+  .flowbox svg{width:820px;max-width:none}
+  .flowscroll::after{content:"";display:block}
+}
+.flowhint{font-family:var(--mono);font-size:10px;color:var(--faint);text-align:center;padding:6px 0 4px;
+  letter-spacing:.04em}
+
+/* mock email */
+.mail{background:var(--card);border:1px solid var(--rule);border-radius:11px;overflow:hidden}
+.mailhd{padding:12px 15px;border-bottom:1px solid var(--rule);background:#f8f6f1}
+.mailhd .fr{font-size:12px;color:var(--muted)}
+.mailhd .fr b{color:var(--ink)}
+.mailhd .su{font-size:14px;font-weight:700;margin-top:3px}
+.mailbody{padding:14px 16px;font-size:12.5px}
+.mailbody h5{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--faint);margin:14px 0 6px;font-weight:400}
+.mailbody h5:first-child{margin-top:0}
+.mailrow{display:flex;gap:9px;padding:5px 0;border-bottom:1px solid #f0ede6;align-items:baseline}
+.mailrow:last-of-type{border-bottom:0}
+.mailrow .bul{font-family:var(--mono);font-size:10px;min-width:52px}
+.mailrow .bul.p1{color:var(--crit);font-weight:700}
+.mailrow .bul.p2{color:var(--warn)}
+.mailrow .bul.isp{color:var(--info)}
+.mailrow .bul.ok{color:var(--ok)}
+.mailrow .tx{flex:1}
+.mailrow .tx b{font-weight:650}
+.mailrow .mu{color:var(--muted);font-size:11.5px}
+.suggest{background:#f2f7f5;border:1px solid #cfe0da;border-left:3px solid var(--brand);
+  border-radius:8px;padding:10px 13px;margin-top:12px}
+.suggest .lb{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--brand);
+  text-transform:uppercase}
+.suggest p{margin:4px 0 0;font-size:12.5px;color:var(--ink2)}
+
+/* kanban */
+.kb{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+@media(max-width:1000px){.kb{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.kb{grid-template-columns:1fr}}
+.kcol{background:#f4f2ec;border:1px solid var(--rule);border-radius:9px;padding:8px}
+.kcol h4{font-size:11px;font-weight:700;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.kcol h4 .c{font-family:var(--mono);font-size:9.5px;color:var(--muted);margin-left:auto}
+.kcol.block{background:var(--warn-bg);border-color:var(--warn-bd)}
+.kcard{background:#fff;border:1px solid var(--rule);border-radius:6px;padding:7px 8px;margin-bottom:6px}
+.kcard .t{font-size:11px;font-weight:600;line-height:1.35}
+.kcard .lb{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
+.klab{font-family:var(--mono);font-size:8px;letter-spacing:.05em;padding:1px 5px;border-radius:3px}
+.kplans{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px}
+.kplan{font-size:11.5px;border:1px solid var(--rule2);background:#fff;border-radius:20px;padding:4px 12px}
+.kplan.on{background:var(--brand);color:#fff;border-color:var(--brand);font-weight:600}
+
+/* recommendations */
+.rec{background:var(--card);border:1px solid var(--rule);border-radius:10px;margin-bottom:9px;
+  display:flex;gap:0;overflow:hidden}
+.rec .rank{background:#f4f2ec;border-right:1px solid var(--rule);padding:12px 11px;text-align:center;
+  min-width:44px;display:flex;flex-direction:column;justify-content:center}
+.rec .rank .num{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--brand)}
+.rec .main{flex:1;padding:11px 14px;min-width:0}
+.rec h4{font-size:13px;margin-bottom:3px}
+.rec .ds{font-size:12px;color:var(--muted);margin:0 0 6px}
+.rec .fx{font-size:11.5px;color:var(--ink2)}
+.rec .fx b{color:var(--crit);font-weight:600}
+.rec .badges{display:flex;flex-direction:column;gap:5px;padding:11px 13px 11px 0;justify-content:center;
+  min-width:112px}
+.bdg{font-family:var(--mono);font-size:9px;letter-spacing:.05em;padding:3px 7px;border-radius:4px;
+  border:1px solid;text-align:center;white-space:nowrap}
+.imp-h{color:var(--ok);background:var(--ok-bg);border-color:var(--ok-bd)}
+.imp-m{color:var(--info);background:var(--info-bg);border-color:#c6dbe8}
+.eff-l{color:var(--ok);background:var(--ok-bg);border-color:var(--ok-bd)}
+.eff-m{color:var(--warn);background:var(--warn-bg);border-color:var(--warn-bd)}
+@media(max-width:700px){.rec{flex-wrap:wrap}.rec .badges{flex-direction:row;padding:0 14px 11px}}
+
+/* ---------- ISP notices ---------- */
+.isp{display:flex;gap:11px;padding:10px 15px;border-bottom:1px solid var(--rule);align-items:flex-start}
+.isp:last-child{border-bottom:0}
+.isp.unack{background:#fdfaf3}
+.isp .prov{font-family:var(--mono);font-size:10.5px;font-weight:650;color:var(--ink);
+  min-width:66px;padding-top:2px}
+.isp .body{flex:1;min-width:0}
+.isp .ty{font-size:12.5px;font-weight:650}
+.isp .rf{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.isp .im{font-size:11.5px;color:var(--muted);margin-top:2px}
+.isp .wn{font-family:var(--mono);font-size:11px;color:var(--ink2);white-space:nowrap;text-align:right;
+  padding-top:2px}
+.isp .ackb{font-family:var(--mono);font-size:8.5px;letter-spacing:.06em;padding:2px 6px;border-radius:3px;
+  border:1px solid;white-space:nowrap;display:block;margin-top:4px}
+.ack-y{color:var(--ok);background:var(--ok-bg);border-color:var(--ok-bd)}
+.ack-n{color:var(--warn);background:var(--warn-bg);border-color:var(--warn-bd)}
+.empty{padding:20px 15px;text-align:center;color:var(--faint);font-size:12.5px}
+.foot{margin-top:28px;padding-top:14px;border-top:1px solid var(--rule);color:var(--faint);
+  font-size:11px;line-height:1.65}
+.foot b{color:var(--muted)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+@media print{
+  @page{margin:10mm}
+  body{background:#fff}
+  .wrap{max-width:none;padding:0}
+  nav.tabs,.samplebar{display:none!important}
+  .panel{display:block!important;page-break-before:always}
+  .panel:first-of-type{page-break-before:avoid}
+  .panel::before{content:attr(data-pt);display:block;font-size:14pt;font-weight:700;margin:0 0 8pt;
+    padding-bottom:4pt;border-bottom:1.5pt solid #111}
+  .card,.rcard{break-inside:avoid;box-shadow:none}
+  .rcard{cursor:default}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="samplebar">
+    <b>SAMPLE DATA.</b> Every figure on this page is illustrative, to show the layout only.
+    Replace the <code>DATA</code> block at the bottom of the file with real values before sharing.
+  </div>
+
+  <header class="mast">
+    <div class="lockup">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+        <circle cx="17" cy="17" r="15.2" fill="none" stroke="#14524b" stroke-width="1.3"/>
+        <ellipse cx="17" cy="17" rx="6.4" ry="15.2" fill="none" stroke="#14524b" stroke-width="1" opacity=".55"/>
+        <line x1="1.8" y1="17" x2="32.2" y2="17" stroke="#14524b" stroke-width="1" opacity=".55"/>
+        <circle cx="9.5" cy="10.5" r="2.1" fill="#6b4f9e"/>
+        <circle cx="24" cy="12" r="2.1" fill="#1a6296"/>
+        <circle cx="14" cy="24" r="2.1" fill="#a35a22"/>
+      </svg>
+      <div>
+        <div class="kick">Global Network Operations</div>
+        <h1>Daily Briefing</h1>
+      </div>
+    </div>
+    <div class="when">
+      <div class="d" id="todayDate">—</div>
+      <div class="t">APAC · EMEA · NAFTA</div>
+    </div>
+  </header>
+  <div class="subrule"></div>
+
+  <!-- tri-region strip -->
+  <div class="strip" id="strip"></div>
+
+  <nav class="tabs" role="tablist" aria-label="Views">
+    <button class="tab" role="tab" aria-selected="true"  aria-controls="p-today" id="t-today">Today</button>
+    <button class="tab apac" role="tab" aria-selected="false" aria-controls="p-apac" id="t-apac"><span class="dotr"></span>APAC</button>
+    <button class="tab emea" role="tab" aria-selected="false" aria-controls="p-emea" id="t-emea"><span class="dotr"></span>EMEA</button>
+    <button class="tab naft" role="tab" aria-selected="false" aria-controls="p-naft" id="t-naft"><span class="dotr"></span>NAFTA</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-proj" id="t-proj">Projects</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-imp" id="t-imp">Improve process</button>
+  </nav>
+
+  <section class="panel on" id="p-today" role="tabpanel" aria-labelledby="t-today" data-pt="Today"></section>
+  <section class="panel" id="p-apac" role="tabpanel" aria-labelledby="t-apac" data-pt="APAC"></section>
+  <section class="panel" id="p-emea" role="tabpanel" aria-labelledby="t-emea" data-pt="EMEA"></section>
+  <section class="panel" id="p-naft" role="tabpanel" aria-labelledby="t-naft" data-pt="NAFTA"></section>
+  <section class="panel" id="p-proj" role="tabpanel" aria-labelledby="t-proj" data-pt="Projects"></section>
+  <section class="panel" id="p-imp" role="tabpanel" aria-labelledby="t-imp" data-pt="Improve process"></section>
+
+  <div class="foot">
+    <b>Global Network Operations — Daily Briefing.</b> Queues: MBAG · XMO DC · Everest · BOM.
+    Regions: APAC, EMEA, NAFTA. All data on this page is sample data for layout purposes.
+    <br><b>Tip:</b> Print / Save as PDF renders every tab, so the whole briefing shares as one document.
+  </div>
+</div>
+
+<script>
+/* ============================================================================
+   DATA  —  replace everything in this block with real values.
+   Structure is the same for each region, so you can script it later.
+   ========================================================================== */
+var DATA = {
+  meta: { manager: "", updated: "08:15 CET" },
+
+  queues: ["MBAG", "XMO DC", "Everest", "BOM"],
+
+  regions: {
+    apac: {
+      label: "APAC", cls: "apac", dcs_count: 5,
+      isp: [
+        { prov:"SingTel",   ref:"PM-88412", type:"Planned maintenance", dc:"SIN01",
+          when:"26 Jul, 02:00-06:00 SGT", impact:"DCI link B down, A carries load", ack:true },
+        { prov:"NTT",       ref:"INC-22901", type:"Degradation", dc:"TYO01",
+          when:"Ongoing", impact:"Packet loss on transit 2, ticket raised", ack:false }
+      ],
+      queue: {
+        "MBAG":    { open: 34, wip: 12, aging: 6,  risk: 3, breach: 1 },
+        "XMO DC":  { open: 21, wip:  8, aging: 4,  risk: 2, breach: 0 },
+        "Everest": { open: 17, wip:  5, aging: 2,  risk: 1, breach: 0 },
+        "BOM":     { open:  9, wip:  3, aging: 1,  risk: 0, breach: 0 }
+      },
+      breaches: [
+        { id:"MBAG-48213", sev:"P2", title:"Leaf switch uplink flapping — SIN01 pod 3",
+          owner:"K. Tan", over:"6h", target:"P2 · 8h" }
+      ],
+      upgrades: [
+        { site:"SIN01", rel:"10.5(5)M", total:42, done:38, prog:3, fail:1 },
+        { site:"TYO01", rel:"10.5(5)M", total:28, done:28, prog:0, fail:0 },
+        { site:"SYD03", rel:"10.4(3)M", total:16, done:6,  prog:9, fail:1 }
+      ],
+      dcs: [
+        { code:"SIN01", city:"Singapore",  st:"warn", m:"1 upgrade failed, retry scheduled" },
+        { code:"HKG02", city:"Hong Kong",  st:"ok",   m:"All fabrics nominal" },
+        { code:"TYO01", city:"Tokyo",      st:"ok",   m:"Upgrade complete" },
+        { code:"SYD03", city:"Sydney",     st:"warn", m:"Upgrade in progress" },
+        { code:"MUM01", city:"Mumbai",     st:"ok",   m:"All fabrics nominal" }
+      ]
+    },
+
+    emea: {
+      label: "EMEA", cls: "emea", dcs_count: 5,
+      isp: [
+        { prov:"Colt",      ref:"PWIC-55120", type:"Planned maintenance", dc:"FRA01",
+          when:"25 Jul, 01:00-05:00 CET", impact:"Transit 1 down during P1 recovery window", ack:false },
+        { prov:"BT",        ref:"PM-33218",  type:"Planned maintenance", dc:"LON02",
+          when:"28 Jul, 23:00-03:00 BST", impact:"DCI to AMS01, redundant path available", ack:true },
+        { prov:"Orange",    ref:"INC-77104", type:"Outage notice", dc:"AMS01",
+          when:"Resolved 22 Jul", impact:"Circuit restored, RFO pending", ack:false }
+      ],
+      queue: {
+        "MBAG":    { open: 41, wip: 15, aging: 9,  risk: 5, breach: 2 },
+        "XMO DC":  { open: 33, wip: 11, aging: 7,  risk: 4, breach: 1 },
+        "Everest": { open: 12, wip:  4, aging: 1,  risk: 0, breach: 0 },
+        "BOM":     { open: 14, wip:  6, aging: 3,  risk: 1, breach: 0 }
+      },
+      breaches: [
+        { id:"MBAG-51902", sev:"P1", title:"vPC peer-link down — FRA01 core pair",
+          owner:"M. Weber", over:"2h 40m", target:"P1 · 4h" },
+        { id:"XMO-11744",  sev:"P2", title:"BGP EVPN session flap after upgrade — LON02",
+          owner:"S. Ahmed", over:"11h", target:"P2 · 8h" },
+        { id:"MBAG-51877", sev:"P2", title:"Optics replacement pending — AMS01 spine 2",
+          owner:"J. Visser", over:"3h", target:"P2 · 8h" }
+      ],
+      upgrades: [
+        { site:"FRA01", rel:"10.5(5)M", total:54, done:31, prog:20, fail:3 },
+        { site:"LON02", rel:"10.5(5)M", total:38, done:36, prog:0,  fail:2 },
+        { site:"WAW01", rel:"10.4(3)M", total:22, done:22, prog:0,  fail:0 }
+      ],
+      dcs: [
+        { code:"FRA01", city:"Frankfurt", st:"crit", m:"vPC peer-link down, P1 active" },
+        { code:"LON02", city:"London",    st:"warn", m:"2 devices failed upgrade" },
+        { code:"AMS01", city:"Amsterdam", st:"warn", m:"Optics RMA pending" },
+        { code:"DUB03", city:"Dublin",    st:"ok",   m:"All fabrics nominal" },
+        { code:"WAW01", city:"Warsaw",    st:"ok",   m:"Upgrade complete" }
+      ]
+    },
+
+    naft: {
+      label: "NAFTA", cls: "naft", dcs_count: 5,
+      isp: [
+        { prov:"Lumen",     ref:"PM-91077", type:"Planned maintenance", dc:"ASH02",
+          when:"27 Jul, 00:00-04:00 EDT", impact:"Transit 2 down, clashes with upgrade batch", ack:false },
+        { prov:"Zayo",      ref:"PM-40551", type:"Planned maintenance", dc:"DFW01",
+          when:"30 Jul, 02:00-05:00 CDT", impact:"Dark fibre splice, no service impact", ack:true }
+      ],
+      queue: {
+        "MBAG":    { open: 28, wip: 10, aging: 4, risk: 2, breach: 0 },
+        "XMO DC":  { open: 19, wip:  7, aging: 3, risk: 1, breach: 0 },
+        "Everest": { open: 23, wip:  9, aging: 5, risk: 3, breach: 1 },
+        "BOM":     { open:  7, wip:  2, aging: 0, risk: 0, breach: 0 }
+      },
+      breaches: [
+        { id:"EVR-90455", sev:"P2", title:"Circuit provisioning stalled — DFW01 to ASH02",
+          owner:"R. Alvarez", over:"4h", target:"P2 · 8h" }
+      ],
+      upgrades: [
+        { site:"DFW01", rel:"10.5(5)M", total:46, done:46, prog:0,  fail:0 },
+        { site:"ASH02", rel:"10.5(5)M", total:61, done:44, prog:15, fail:2 },
+        { site:"SJC01", rel:"10.4(3)M", total:19, done:0,  prog:0,  fail:0 }
+      ],
+      dcs: [
+        { code:"DFW01", city:"Dallas",     st:"ok",   m:"Upgrade complete" },
+        { code:"ASH02", city:"Ashburn",    st:"warn", m:"Upgrade in progress" },
+        { code:"SJC01", city:"San Jose",   st:"ok",   m:"Upgrade not started" },
+        { code:"TOR01", city:"Toronto",    st:"ok",   m:"All fabrics nominal" },
+        { code:"MEX01", city:"Mexico City",st:"ok",   m:"All fabrics nominal" }
+      ]
+    }
+  },
+
+  meetings: [
+    { t:"08:30", dur:"30m", ti:"APAC handover / night shift summary", who:"K. Tan, ops leads", rgn:"apac" },
+    { t:"09:30", dur:"45m", ti:"P1 bridge — FRA01 vPC peer-link", who:"M. Weber, DC eng, vendor TAC", rgn:"emea" },
+    { t:"11:00", dur:"60m", ti:"Change Advisory Board — week 30 windows", who:"CAB panel", rgn:"all" },
+    { t:"13:00", dur:"30m", ti:"NAFTA upgrade programme review", who:"R. Alvarez, PMO", rgn:"naft" },
+    { t:"15:00", dur:"45m", ti:"Vendor QBR — hardware roadmap & BOM", who:"Account team, supply chain", rgn:"all" },
+    { t:"16:30", dur:"30m", ti:"EMEA weekly ops sync", who:"EMEA team", rgn:"emea" }
+  ],
+
+  projects: {
+    current: [
+      { nm:"NX-OS 10.5(5) fleet upgrade", rgn:"all",  rag:"a", pct:64, own:"P. Katyayan",
+        meta:"Fabric refresh across all three regions", due:"31 Aug 2026",
+        note:"FRA01 and ASH02 behind plan" },
+      { nm:"VXLAN EVPN migration — phase 2", rgn:"emea", rag:"g", pct:78, own:"M. Weber",
+        meta:"Legacy L2 domains onto EVPN overlay", due:"15 Sep 2026", note:"On track" },
+      { nm:"DC consolidation — SJC01 exit", rgn:"naft", rag:"r", pct:22, own:"R. Alvarez",
+        meta:"Workload migration and circuit cutover", due:"30 Nov 2026",
+        note:"Blocked on BOM lead times" },
+      { nm:"Everest queue automation", rgn:"apac", rag:"g", pct:41, own:"K. Tan",
+        meta:"Auto-triage and routing for Everest tickets", due:"31 Oct 2026", note:"On track" }
+    ],
+    future: [
+      { q:"Q4 2026", nm:"Pre/post upgrade assurance rollout", rgn:"all",
+        ds:"Standardise change-window validation across regions" },
+      { q:"Q4 2026", nm:"NAFTA spine refresh — ASH02", rgn:"naft",
+        ds:"Hardware replacement, capacity uplift" },
+      { q:"Q1 2027", nm:"APAC edge expansion — 2 new DCs", rgn:"apac",
+        ds:"Site build, fabric deployment, circuit delivery" },
+      { q:"Q1 2027", nm:"EMEA circuit re-tender", rgn:"emea",
+        ds:"Commercial review of transit and DCI links" }
+    ]
+  }
+};
+
+/* ============================================================================
+   RENDER
+   ========================================================================== */
+var RK = ["apac","emea","naft"];
+var esc = function(s){ return String(s==null?"":s)
+  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); };
+
+function totals(r){
+  var t = { open:0, wip:0, aging:0, risk:0, breach:0 };
+  Object.keys(r.queue).forEach(function(q){
+    var v = r.queue[q];
+    t.open+=v.open; t.wip+=v.wip; t.aging+=v.aging; t.risk+=v.risk; t.breach+=v.breach;
+  });
+  return t;
+}
+function regionStatus(r){
+  var t = totals(r);
+  var hasP1 = r.breaches.some(function(b){ return b.sev === "P1"; });
+  var critDC = r.dcs.some(function(d){ return d.st === "crit"; });
+  /* CRITICAL is reserved for things that need the manager right now, so the
+     strip actually triages instead of colouring every region the same. */
+  if (hasP1 || critDC) return "crit";
+  if (t.breach > 0 || t.risk > 0 || r.dcs.some(function(d){return d.st==="warn";})) return "warn";
+  return "ok";
+}
+function upTotals(r){
+  var d=0,p=0,f=0,tot=0;
+  r.upgrades.forEach(function(u){ d+=u.done; p+=u.prog; f+=u.fail; tot+=u.total; });
+  return { done:d, prog:p, fail:f, total:tot, pct: tot? Math.round(d/tot*100):0 };
+}
+
+/* --- tri-region strip --- */
+function renderStrip(){
+  document.getElementById("strip").innerHTML = RK.map(function(k){
+    var r = DATA.regions[k], t = totals(r), st = regionStatus(r), up = upTotals(r);
+    var lbl = { ok:"NOMINAL", warn:"ATTENTION", crit:"ACTION REQUIRED" }[st];
+    return '<button class="rcard '+r.cls+'" data-goto="'+k+'">'+
+      '<div class="band"></div>'+
+      '<div class="rhead"><span class="rname">'+esc(r.label)+'</span>'+
+        '<span class="rsites">'+r.dcs_count+' DCs</span>'+
+        '<span class="rstat st-'+st+'">'+lbl+'</span></div>'+
+      '<div class="rnums">'+
+        '<div class="rnum"><div class="v">'+t.open+'</div><div class="k">Open</div></div>'+
+        '<div class="rnum '+(t.risk?"warnv":"")+'"><div class="v">'+t.risk+'</div><div class="k">SLA risk</div></div>'+
+        '<div class="rnum '+(t.breach?"bad":"")+'"><div class="v">'+t.breach+'</div><div class="k">Breached</div></div>'+
+        '<div class="rnum okv"><div class="v">'+up.pct+'%</div><div class="k">Upgraded</div></div>'+
+      '</div></button>';
+  }).join("");
+  document.querySelectorAll("[data-goto]").forEach(function(b){
+    b.addEventListener("click", function(){ document.getElementById("t-"+b.dataset.goto).click(); });
+  });
+}
+
+/* --- queue table --- */
+function queueTable(r){
+  var rows = DATA.queues.map(function(q){
+    var v = r.queue[q] || {open:0,wip:0,aging:0,risk:0,breach:0};
+    return '<tr><td class="q">'+esc(q)+'<span class="qtag">QUEUE</span></td>'+
+      '<td class="n'+(v.open?"":" zero")+'">'+v.open+'</td>'+
+      '<td class="n'+(v.wip?"":" zero")+'">'+v.wip+'</td>'+
+      '<td class="n'+(v.aging?" warnv":" zero")+'">'+v.aging+'</td>'+
+      '<td class="n'+(v.risk?" warnv":" zero")+'">'+v.risk+'</td>'+
+      '<td class="n'+(v.breach?" bad":" zero")+'">'+v.breach+'</td></tr>';
+  }).join("");
+  var t = totals(r);
+  return '<div class="card"><div class="chead"><h3>Ticket queues</h3>'+
+    '<span class="note">'+t.open+' open total</span></div>'+
+    '<div class="cbody flush"><table><thead><tr><th>Queue</th><th style="text-align:right">Open</th>'+
+    '<th style="text-align:right">In progress</th><th style="text-align:right">Aging &gt;7d</th>'+
+    '<th style="text-align:right">SLA at risk</th><th style="text-align:right">Breached</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table></div></div>';
+}
+
+/* --- SLA breaches --- */
+function slaCard(list, title){
+  var body = list.length ? list.map(function(b){
+    return '<div class="sla"><span class="sev sv-'+b.sev.toLowerCase()+'">'+esc(b.sev)+'</span>'+
+      '<div class="body"><div class="id">'+esc(b.id)+'</div>'+
+      '<div class="ti">'+esc(b.title)+'</div>'+
+      '<div class="mt">'+esc(b.owner)+' · target '+esc(b.target)+'</div></div>'+
+      '<div class="over">+'+esc(b.over)+'<span>OVER</span></div></div>';
+  }).join("") : '<div class="empty">No SLA breaches. ✓</div>';
+  return '<div class="card"><div class="chead"><h3>'+esc(title)+'</h3>'+
+    '<span class="note">'+list.length+' active</span></div><div class="cbody flush">'+body+'</div></div>';
+}
+
+/* --- upgrades --- */
+function upgradeCard(r){
+  var up = upTotals(r);
+  var body = r.upgrades.map(function(u){
+    var pd = u.total? u.done/u.total*100:0, pp = u.total? u.prog/u.total*100:0,
+        pf = u.total? u.fail/u.total*100:0;
+    return '<div class="up"><div class="uphd"><span class="site">'+esc(u.site)+'</span>'+
+      '<span class="rel">'+esc(u.rel)+'</span>'+
+      '<span class="pct">'+Math.round(u.done/u.total*100)+'%</span></div>'+
+      '<div class="bar"><i class="done" style="width:'+pd+'%"></i>'+
+      '<i class="prog" style="width:'+pp+'%"></i><i class="fail" style="width:'+pf+'%"></i></div>'+
+      '<div class="uplg"><span>done <b>'+u.done+'</b></span><span>in progress <b>'+u.prog+'</b></span>'+
+      '<span>failed <b>'+u.fail+'</b></span><span>total <b>'+u.total+'</b></span></div></div>';
+  }).join("");
+  return '<div class="card"><div class="chead"><h3>Software upgrade status</h3>'+
+    '<span class="note">'+up.done+' / '+up.total+' devices</span></div>'+
+    '<div class="cbody flush">'+body+'</div></div>';
+}
+
+/* --- DC health --- */
+function dcCard(r){
+  var body = r.dcs.map(function(d){
+    return '<div class="dc '+(d.st==="ok"?"":d.st)+'">'+
+      '<div class="dchd"><span class="dot '+d.st+'"></span><span class="code">'+esc(d.code)+'</span></div>'+
+      '<div class="city">'+esc(d.city)+'</div><div class="m">'+esc(d.m)+'</div></div>';
+  }).join("");
+  var bad = r.dcs.filter(function(d){return d.st!=="ok";}).length;
+  return '<div class="card"><div class="chead"><h3>Data centre health</h3>'+
+    '<span class="note">'+(bad? bad+" need attention" : "all nominal")+'</span></div>'+
+    '<div class="dcgrid">'+body+'</div></div>';
+}
+
+
+/* --- ISP notices --- */
+function ispCard(r, showDC){
+  var un = r.isp.filter(function(x){ return !x.ack; }).length;
+  var body = r.isp.length ? r.isp.map(function(x){
+    return '<div class="isp'+(x.ack?"":" unack")+'">'+
+      '<span class="prov">'+esc(x.prov)+'</span>'+
+      '<div class="body"><div class="ty">'+esc(x.type)+
+        ' <span class="rf">'+esc(x.ref)+(showDC?' \u00b7 '+esc(x.dc):'')+'</span></div>'+
+        '<div class="im">'+esc(x.impact)+'</div></div>'+
+      '<div class="wn">'+esc(x.when)+
+        '<span class="ackb '+(x.ack?"ack-y":"ack-n")+'">'+(x.ack?"ACKED":"NO ACK")+'</span></div></div>';
+  }).join("") : '<div class="empty">No open ISP notices.</div>';
+  return '<div class="card"><div class="chead"><h3>ISP notices &amp; planned maintenance</h3>'+
+    '<span class="note">'+(un? un+" not acknowledged" : "all acknowledged")+'</span></div>'+
+    '<div class="cbody flush">'+body+'</div></div>';
+}
+
+/* --- region panel --- */
+function renderRegion(k){
+  var r = DATA.regions[k];
+  document.getElementById("p-"+k).innerHTML =
+    '<div class="cols c2"><div>'+ queueTable(r) + upgradeCard(r) +
+    '</div><div>'+ slaCard(r.breaches, "SLA breaches") + ispCard(r, true) + '</div></div>' + dcCard(r);
+}
+
+/* --- today panel --- */
+function renderToday(){
+  var meetings = DATA.meetings.map(function(m){
+    var rl = { apac:"APAC", emea:"EMEA", naft:"NAFTA", all:"GLOBAL" }[m.rgn];
+    return '<div class="mt"><div class="time"><b>'+esc(m.t)+'</b>'+esc(m.dur)+'</div>'+
+      '<div class="info"><div class="ti">'+esc(m.ti)+'</div>'+
+      '<div class="who">'+esc(m.who)+'</div></div>'+
+      '<span class="rgn rg-'+m.rgn+'">'+rl+'</span></div>';
+  }).join("");
+
+  var allBreach = [];
+  RK.forEach(function(k){
+    DATA.regions[k].breaches.forEach(function(b){
+      allBreach.push(Object.assign({}, b, { region: DATA.regions[k].label }));
+    });
+  });
+  allBreach.sort(function(a,b){ return a.sev.localeCompare(b.sev); });
+  var breachBody = allBreach.length ? allBreach.map(function(b){
+    return '<div class="sla"><span class="sev sv-'+b.sev.toLowerCase()+'">'+esc(b.sev)+'</span>'+
+      '<div class="body"><div class="id">'+esc(b.id)+' · '+esc(b.region)+'</div>'+
+      '<div class="ti">'+esc(b.title)+'</div>'+
+      '<div class="mt">'+esc(b.owner)+' · target '+esc(b.target)+'</div></div>'+
+      '<div class="over">+'+esc(b.over)+'<span>OVER</span></div></div>';
+  }).join("") : '<div class="empty">No SLA breaches across any region. ✓</div>';
+
+  /* global queue roll-up */
+  var rows = DATA.queues.map(function(q){
+    var cells = RK.map(function(k){
+      var v = DATA.regions[k].queue[q] || {open:0,breach:0};
+      return '<td class="n'+(v.open?"":" zero")+'">'+v.open+
+        (v.breach? ' <span style="color:var(--crit);font-size:10px">('+v.breach+')</span>':'')+'</td>';
+    }).join("");
+    var tot = RK.reduce(function(s,k){ return s + (DATA.regions[k].queue[q]||{open:0}).open; },0);
+    return '<tr><td class="q">'+esc(q)+'</td>'+cells+'<td class="n" style="font-weight:700">'+tot+'</td></tr>';
+  }).join("");
+
+  /* unacknowledged ISP notices across all regions - the things most often missed */
+  var ispAll = [];
+  RK.forEach(function(k){
+    DATA.regions[k].isp.forEach(function(x){
+      if(!x.ack) ispAll.push(Object.assign({}, x, { region: DATA.regions[k].label }));
+    });
+  });
+  var ispBody = ispAll.length ? ispAll.map(function(x){
+    return '<div class="isp unack"><span class="prov">'+esc(x.prov)+'</span>'+
+      '<div class="body"><div class="ty">'+esc(x.type)+
+        ' <span class="rf">'+esc(x.ref)+' \u00b7 '+esc(x.region)+' \u00b7 '+esc(x.dc)+'</span></div>'+
+        '<div class="im">'+esc(x.impact)+'</div></div>'+
+      '<div class="wn">'+esc(x.when)+'<span class="ackb ack-n">NO ACK</span></div></div>';
+  }).join("") : '<div class="empty">All ISP notices acknowledged. \u2713</div>';
+
+  document.getElementById("p-today").innerHTML =
+    '<div class="cols c2">'+
+      '<div>'+
+        '<div class="card"><div class="chead"><h3>Open tickets by queue and region</h3>'+
+          '<span class="note">breached in ( )</span></div><div class="cbody flush">'+
+          '<table><thead><tr><th>Queue</th><th style="text-align:right">APAC</th>'+
+          '<th style="text-align:right">EMEA</th><th style="text-align:right">NAFTA</th>'+
+          '<th style="text-align:right">Total</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+        '</div></div>'+
+        slaCard(allBreach, "SLA breaches — all regions")+
+        '<div class="card"><div class="chead"><h3>ISP notices needing acknowledgement</h3>'+
+          '<span class="note">'+ispAll.length+' open</span></div>'+
+          '<div class="cbody flush">'+ispBody+'</div></div>'+
+      '</div>'+
+      '<div><div class="card"><div class="chead"><h3>Today\u2019s schedule</h3>'+
+        '<span class="note">'+DATA.meetings.length+' meetings</span></div>'+
+        '<div class="cbody flush">'+meetings+'</div></div></div>'+
+    '</div>';
+}
+
+/* --- projects panel --- */
+function renderProjects(){
+  var rl = { apac:"APAC", emea:"EMEA", naft:"NAFTA", all:"GLOBAL" };
+  var cur = DATA.projects.current.map(function(p){
+    return '<div class="proj"><div class="phd"><span class="nm">'+esc(p.nm)+'</span>'+
+      '<span class="rag rag-'+p.rag+'">'+({g:"GREEN",a:"AMBER",r:"RED"}[p.rag])+'</span>'+
+      '<span class="rgn rg-'+p.rgn+'">'+rl[p.rgn]+'</span>'+
+      '<span class="own">'+esc(p.own)+'</span></div>'+
+      '<div class="pmeta">'+esc(p.meta)+'</div>'+
+      '<div class="pbar"><i style="width:'+p.pct+'%"></i></div>'+
+      '<div class="pfoot"><span>progress <b>'+p.pct+'%</b></span>'+
+      '<span>due <b>'+esc(p.due)+'</b></span><span>'+esc(p.note)+'</span></div></div>';
+  }).join("");
+  var fut = DATA.projects.future.map(function(f){
+    return '<div class="fut"><span class="q">'+esc(f.q)+'</span>'+
+      '<div><div class="nm">'+esc(f.nm)+'</div><div class="ds">'+esc(f.ds)+'</div></div>'+
+      '<span class="rgn rg-'+f.rgn+'" style="margin-left:auto">'+rl[f.rgn]+'</span></div>';
+  }).join("");
+  document.getElementById("p-proj").innerHTML =
+    '<div class="cols c2e">'+
+      '<div class="card"><div class="chead"><h3>Current projects</h3>'+
+        '<span class="note">'+DATA.projects.current.length+' active</span></div>'+
+        '<div class="cbody flush">'+cur+'</div></div>'+
+      '<div class="card"><div class="chead"><h3>Future pipeline</h3>'+
+        '<span class="note">'+DATA.projects.future.length+' planned</span></div>'+
+        '<div class="cbody flush">'+fut+'</div></div>'+
+    '</div>';
+}
+
+
+/* --- improve process panel --- */
+function renderImprove(){
+  /* --- where things get missed today --- */
+  var pains = [
+    { h:"ISP notices land in personal inboxes",
+      p:"Maintenance windows arrive from Colt, BT, Lumen, SingTel and others straight to whoever the provider has on file. If that person is on leave, nobody sees it.",
+      c:"4 notices currently unacknowledged" },
+    { h:"Nothing cross-checks a window against our own plan",
+      p:"An ISP maintenance can fall in the same night as a scheduled upgrade or an open P1. Today that is only caught if a human happens to notice both.",
+      c:"2 clashes visible in this week's data" },
+    { h:"Four queues, three regions, no single view",
+      p:"MBAG, XMO DC, Everest and BOM are tracked separately per region, so ageing and blocked work is only visible to whoever opens that queue.",
+      c:"258 open tickets across 12 queue/region combinations" },
+    { h:"Manager reads mail to find out what is wrong",
+      p:"Status arrives as a stream of individual emails rather than one ranked picture, so triage depends on scrolling rather than on priority.",
+      c:"No single daily summary today" }
+  ].map(function(x){
+    return '<div class="pain"><h4>'+esc(x.h)+'</h4><p>'+esc(x.p)+'</p>'+
+      '<span class="ct">'+esc(x.c)+'</span></div>';
+  }).join("");
+
+  /* --- pipeline diagram --- */
+  var flow = ''+
+  '<svg viewBox="0 0 1020 300" role="img" aria-label="Email and task automation pipeline">'+
+    '<defs><marker id="ah" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">'+
+      '<polygon points="0 0, 9 3.5, 0 7" fill="#9aa4b2"/></marker></defs>'+
+
+    /* lane labels */
+    '<text x="92" y="20" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" fill="#9aa4b2" letter-spacing="1.4">SOURCES</text>'+
+    '<text x="318" y="20" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" fill="#9aa4b2" letter-spacing="1.4">SINGLE INTAKE</text>'+
+    '<text x="530" y="20" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" fill="#9aa4b2" letter-spacing="1.4">AUTOMATION</text>'+
+    '<text x="742" y="20" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" fill="#9aa4b2" letter-spacing="1.4">SYSTEM OF RECORD</text>'+
+    '<text x="944" y="20" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" fill="#9aa4b2" letter-spacing="1.4">OUTPUT</text>'+
+
+    /* sources */
+    '<g font-family="system-ui,sans-serif" font-size="10.5">'+
+      '<rect x="18" y="36" width="148" height="34" rx="7" fill="#eaf2f7" stroke="#c6dbe8"/>'+
+      '<text x="30" y="51" fill="#28607f" font-size="10" font-family="ui-monospace,monospace">ISP / carriers</text>'+
+      '<text x="30" y="63" fill="#6c7789" font-size="9.5">Colt, BT, Lumen, SingTel, NTT</text>'+
+      '<rect x="18" y="80" width="148" height="34" rx="7" fill="#f2eefb" stroke="#ddd2f0"/>'+
+      '<text x="30" y="95" fill="#6b4f9e" font-size="10" font-family="ui-monospace,monospace">Ticket queues</text>'+
+      '<text x="30" y="107" fill="#6c7789" font-size="9.5">MBAG · XMO DC · Everest</text>'+
+      '<rect x="18" y="124" width="148" height="34" rx="7" fill="#fbf0e7" stroke="#eed8c4"/>'+
+      '<text x="30" y="139" fill="#a35a22" font-size="10" font-family="ui-monospace,monospace">Vendors / BOM</text>'+
+      '<text x="30" y="151" fill="#6c7789" font-size="9.5">RMA, lead times, quotes</text>'+
+      '<rect x="18" y="168" width="148" height="34" rx="7" fill="#eaf5ee" stroke="#c8e3d3"/>'+
+      '<text x="30" y="183" fill="#2b7047" font-size="10" font-family="ui-monospace,monospace">Change / CAB</text>'+
+      '<text x="30" y="195" fill="#6c7789" font-size="9.5">Approved windows</text>'+
+    '</g>'+
+
+    /* arrows to intake */
+    '<path d="M170 53 L242 105" stroke="#cfc8ba" stroke-width="1.2" fill="none" marker-end="url(#ah)"/>'+
+    '<path d="M170 97 L242 110" stroke="#cfc8ba" stroke-width="1.2" fill="none" marker-end="url(#ah)"/>'+
+    '<path d="M170 141 L242 122" stroke="#cfc8ba" stroke-width="1.2" fill="none" marker-end="url(#ah)"/>'+
+    '<path d="M170 185 L242 132" stroke="#cfc8ba" stroke-width="1.2" fill="none" marker-end="url(#ah)"/>'+
+
+    /* shared mailbox */
+    '<rect x="248" y="88" width="142" height="58" rx="9" fill="#fff" stroke="#14524b" stroke-width="1.6"/>'+
+    '<text x="319" y="108" text-anchor="middle" font-size="11.5" font-weight="700" font-family="system-ui,sans-serif" fill="#1b2230">Shared mailbox</text>'+
+    '<text x="319" y="123" text-anchor="middle" font-size="9.5" font-family="ui-monospace,monospace" fill="#14524b">dc-ops@</text>'+
+    '<text x="319" y="137" text-anchor="middle" font-size="9" font-family="system-ui,sans-serif" fill="#6c7789">not a personal inbox</text>'+
+    '<path d="M392 117 L452 117" stroke="#9aa4b2" stroke-width="1.4" fill="none" marker-end="url(#ah)"/>'+
+
+    /* power automate flows */
+    '<rect x="458" y="40" width="146" height="42" rx="8" fill="#fff" stroke="#cfc8ba"/>'+
+    '<text x="470" y="57" font-size="10" font-family="ui-monospace,monospace" fill="#14524b">FLOW 1</text>'+
+    '<text x="470" y="71" font-size="10" font-family="system-ui,sans-serif" fill="#3d4757">Notice → task, tagged</text>'+
+    '<rect x="458" y="96" width="146" height="42" rx="8" fill="#fff" stroke="#cfc8ba"/>'+
+    '<text x="470" y="113" font-size="10" font-family="ui-monospace,monospace" fill="#14524b">FLOW 2</text>'+
+    '<text x="470" y="127" font-size="10" font-family="system-ui,sans-serif" fill="#3d4757">Daily digest, 07:30</text>'+
+    '<rect x="458" y="152" width="146" height="42" rx="8" fill="#fcf4e3" stroke="#eddfbd"/>'+
+    '<text x="470" y="169" font-size="10" font-family="ui-monospace,monospace" fill="#a4741a">FLOW 3</text>'+
+    '<text x="470" y="183" font-size="10" font-family="system-ui,sans-serif" fill="#3d4757">Clash alert</text>'+
+    '<text x="531" y="212" text-anchor="middle" font-size="9" font-family="ui-monospace,monospace" fill="#9aa4b2">Power Automate</text>'+
+
+    '<path d="M606 61 L662 105" stroke="#9aa4b2" stroke-width="1.2" fill="none" marker-end="url(#ah)"/>'+
+    '<path d="M606 117 L662 117" stroke="#9aa4b2" stroke-width="1.2" fill="none" marker-end="url(#ah)"/>'+
+
+    /* planner */
+    '<rect x="668" y="70" width="150" height="94" rx="9" fill="#fff" stroke="#14524b" stroke-width="1.6"/>'+
+    '<text x="743" y="89" text-anchor="middle" font-size="11.5" font-weight="700" font-family="system-ui,sans-serif" fill="#1b2230">MS Planner</text>'+
+    '<text x="680" y="105" font-size="9" font-family="ui-monospace,monospace" fill="#6c7789">PLANS BY WORK TYPE</text>'+
+    '<text x="680" y="119" font-size="9.5" font-family="system-ui,sans-serif" fill="#3d4757">Incidents · Changes · ISP</text>'+
+    '<text x="680" y="131" font-size="9.5" font-family="system-ui,sans-serif" fill="#3d4757">BOM · Projects</text>'+
+    '<text x="680" y="147" font-size="9" font-family="ui-monospace,monospace" fill="#6c7789">LABELS = REGION</text>'+
+    '<circle cx="692" cy="156" r="3.5" fill="#6b4f9e"/><circle cx="704" cy="156" r="3.5" fill="#1a6296"/>'+
+    '<circle cx="716" cy="156" r="3.5" fill="#a35a22"/>'+
+
+    '<path d="M820 100 L876 78" stroke="#9aa4b2" stroke-width="1.2" fill="none" marker-end="url(#ah)"/>'+
+    '<path d="M820 122 L876 136" stroke="#9aa4b2" stroke-width="1.2" fill="none" marker-end="url(#ah)"/>'+
+    '<path d="M604 173 C 700 205, 800 200, 878 182" stroke="#a4741a" stroke-width="1.3" fill="none" stroke-dasharray="4 3" marker-end="url(#ah)"/>'+
+
+    /* outputs */
+    '<rect x="882" y="52" width="126" height="42" rx="8" fill="#eaf5ee" stroke="#c8e3d3"/>'+
+    '<text x="945" y="70" text-anchor="middle" font-size="10.5" font-weight="650" font-family="system-ui,sans-serif" fill="#2b7047">Daily digest</text>'+
+    '<text x="945" y="83" text-anchor="middle" font-size="9" font-family="system-ui,sans-serif" fill="#6c7789">one email to manager</text>'+
+    '<rect x="882" y="116" width="126" height="42" rx="8" fill="#eaf2f7" stroke="#c6dbe8"/>'+
+    '<text x="945" y="134" text-anchor="middle" font-size="10.5" font-weight="650" font-family="system-ui,sans-serif" fill="#28607f">This dashboard</text>'+
+    '<text x="945" y="147" text-anchor="middle" font-size="9" font-family="system-ui,sans-serif" fill="#6c7789">live regional view</text>'+
+    '<rect x="882" y="166" width="126" height="42" rx="8" fill="#fcf4e3" stroke="#eddfbd"/>'+
+    '<text x="945" y="184" text-anchor="middle" font-size="10.5" font-weight="650" font-family="system-ui,sans-serif" fill="#a4741a">Clash alert</text>'+
+    '<text x="945" y="197" text-anchor="middle" font-size="9" font-family="system-ui,sans-serif" fill="#6c7789">only when it matters</text>'+
+
+    /* footnote */
+    '<line x1="18" y1="238" x2="1002" y2="238" stroke="#e2ddd2"/>'+
+    '<text x="18" y="256" font-size="10" font-family="system-ui,sans-serif" fill="#6c7789">The change is not a new tool. It is one intake point instead of many inboxes, one system of record instead of four queues,</text>'+
+    '<text x="18" y="270" font-size="10" font-family="system-ui,sans-serif" fill="#6c7789">and one ranked email instead of a stream — so nothing depends on a particular person opening a particular message.</text>'+
+  '</svg>';
+
+  /* --- mock digest email --- */
+  var mail = ''+
+  '<div class="mail"><div class="mailhd">'+
+    '<div class="fr">from <b>DC Ops Automation</b> &lt;dc-ops@&gt; · 07:30 · daily</div>'+
+    '<div class="su">DC Operations — morning brief · 3 items need you</div></div>'+
+  '<div class="mailbody">'+
+    '<h5>Needs a decision today</h5>'+
+    '<div class="mailrow"><span class="bul p1">P1 · EMEA</span><span class="tx">'+
+      '<b>FRA01 vPC peer-link down</b> — 2h 40m over target. <span class="mu">M. Weber, vendor TAC engaged.</span></span></div>'+
+    '<div class="mailrow"><span class="bul isp">CLASH</span><span class="tx">'+
+      '<b>Colt PWIC-55120 maintenance tonight 01:00 CET hits FRA01</b> — same DC as the open P1. '+
+      '<span class="mu">Not yet acknowledged.</span></span></div>'+
+    '<div class="mailrow"><span class="bul isp">CLASH</span><span class="tx">'+
+      '<b>Lumen PM-91077 on ASH02, 27 Jul</b> — overlaps the NAFTA upgrade batch (15 devices in progress). '+
+      '<span class="mu">Reschedule one of the two.</span></span></div>'+
+
+    '<h5>Slipping</h5>'+
+    '<div class="mailrow"><span class="bul p2">P2 · EMEA</span><span class="tx">'+
+      'XMO-11744 BGP EVPN flap after upgrade, LON02 — <b>11h over</b> an 8h target.</span></div>'+
+    '<div class="mailrow"><span class="bul p2">BLOCKED</span><span class="tx">'+
+      'SJC01 exit project — <b>22% at week 9</b>, blocked on BOM lead times for 18 days.</span></div>'+
+
+    '<h5>Moving without you</h5>'+
+    '<div class="mailrow"><span class="bul ok">OK</span><span class="tx">'+
+      'DFW01 and TYO01 upgrades complete. WAW01 at 100%. <span class="mu">No action.</span></span></div>'+
+    '<div class="mailrow"><span class="bul ok">OK</span><span class="tx">'+
+      '3 ISP notices acknowledged and scheduled. <span class="mu">No action.</span></span></div>'+
+
+    '<div class="suggest"><span class="lb">Suggested for today</span>'+
+    '<p>Ask Colt to move PWIC-55120 by 24h — running carrier maintenance into an open P1 on the same DC '+
+    'removes the fallback path while the fault is live. If they cannot move it, hold the FRA01 recovery '+
+    'work until the window closes.</p></div>'+
+
+    '<div class="suggest"><span class="lb">Pattern worth a look</span>'+
+    '<p>EMEA has produced the most SLA breaches for three weeks running and holds the only critical DC. '+
+    'The common factor is post-upgrade validation, not hardware — worth reviewing before the next batch.</p></div>'+
+  '</div></div>';
+
+  /* --- kanban --- */
+  var kcols = [
+    { h:"Triage", n:12, cards:[
+      { t:"Colt PWIC-55120 — FRA01 maintenance", l:[["EMEA","emea"],["ISP","x"]] },
+      { t:"NTT transit degradation — TYO01", l:[["APAC","apac"],["P2","p"]] }]},
+    { h:"In progress", n:31, cards:[
+      { t:"vPC peer-link recovery — FRA01", l:[["EMEA","emea"],["P1","p1"]] },
+      { t:"ASH02 upgrade batch 3", l:[["NAFTA","naft"],["CHG","x"]] }]},
+    { h:"Blocked / vendor", n:9, block:true, cards:[
+      { t:"SJC01 exit — BOM lead time", l:[["NAFTA","naft"],["BOM","x"]] },
+      { t:"AMS01 optics RMA", l:[["EMEA","emea"],["P2","p"]] }]},
+    { h:"Verify", n:7, cards:[
+      { t:"LON02 post-upgrade validation", l:[["EMEA","emea"],["CHG","x"]] }]},
+    { h:"Done", n:44, cards:[
+      { t:"WAW01 upgrade complete", l:[["EMEA","emea"]] },
+      { t:"DFW01 upgrade complete", l:[["NAFTA","naft"]] }]}
+  ].map(function(c){
+    var cards = c.cards.map(function(k){
+      var labs = k.l.map(function(l){
+        var bg = { emea:"background:var(--emea-bg);color:var(--emea)",
+                   apac:"background:var(--apac-bg);color:var(--apac)",
+                   naft:"background:var(--naft-bg);color:var(--naft)",
+                   p1:"background:var(--crit);color:#fff",
+                   p:"background:var(--crit-bg);color:var(--crit)",
+                   x:"background:#eeebe4;color:#6c7789" }[l[1]];
+        return '<span class="klab" style="'+bg+'">'+esc(l[0])+'</span>';
+      }).join("");
+      return '<div class="kcard"><div class="t">'+esc(k.t)+'</div><div class="lb">'+labs+'</div></div>';
+    }).join("");
+    return '<div class="kcol'+(c.block?" block":"")+'"><h4>'+esc(c.h)+'<span class="c">'+c.n+'</span></h4>'+cards+'</div>';
+  }).join("");
+
+  var plans = ["DC Incidents","Change &amp; Upgrades","ISP &amp; Circuits","BOM &amp; Supply","Projects"]
+    .map(function(x,i){ return '<span class="kplan'+(i===0?" on":"")+'">'+x+'</span>'; }).join("");
+
+  /* --- recommendations --- */
+  var recs = [
+    { h:"One intake point for every external notice", imp:"h", eff:"l",
+      ds:"A shared mailbox that all carriers, vendors and queues send to, instead of individual inboxes.",
+      fx:"Fixes: <b>notices missed when someone is on leave</b>, and the fact that nobody can audit what arrived." },
+    { h:"Auto-create a task from every ISP notice", imp:"h", eff:"l",
+      ds:"Power Automate reads the notice, creates a Planner task tagged with region and DC, due on the window date.",
+      fx:"Fixes: <b>manual re-keying</b> and windows that exist only in an email nobody re-reads." },
+    { h:"Clash detection against our own calendar", imp:"h", eff:"m",
+      ds:"Compare every incoming maintenance window against scheduled change windows and open P1s in the same DC.",
+      fx:"Fixes: <b>carrier work landing on top of our own work</b> — two live examples in this week's data." },
+    { h:"One ranked daily brief instead of a mail stream", imp:"h", eff:"l",
+      ds:"A scheduled flow that sends one email each morning: what needs a decision, what is slipping, what is fine.",
+      fx:"Fixes: <b>triage by scrolling</b>, and status that depends on who forwarded what." },
+    { h:"Same workflow in all three regions", imp:"h", eff:"m",
+      ds:"Identical buckets everywhere: Triage → In progress → Blocked → Verify → Done. Region becomes a label, not a separate board.",
+      fx:"Fixes: <b>regions that cannot be compared</b> and handover friction between APAC, EMEA and NAFTA." },
+    { h:"A Blocked / waiting-on-vendor bucket with ageing", imp:"m", eff:"l",
+      ds:"Work waiting on someone outside the team is visibly separated and its age is tracked.",
+      fx:"Fixes: <b>vendor delay hiding inside 'in progress'</b> — the SJC01 exit has sat there 18 days." },
+    { h:"Standard pre/post validation on every upgrade", imp:"h", eff:"m",
+      ds:"The same capture and comparison at every change window, with sign-off recorded per finding.",
+      fx:"Fixes: <b>post-upgrade drift found by users rather than by us</b> — the LON02 EVPN flap is this pattern." },
+    { h:"Follow-the-sun handover from the board, not a call", imp:"m", eff:"m",
+      ds:"Each region hands over by what is in Triage and Blocked, generated automatically at shift end.",
+      fx:"Fixes: <b>context lost between regions</b> and handover quality depending on who is on shift." }
+  ].map(function(r,i){
+    return '<div class="rec"><div class="rank"><span class="num">'+(i+1)+'</span></div>'+
+      '<div class="main"><h4>'+esc(r.h)+'</h4><p class="ds">'+esc(r.ds)+'</p>'+
+      '<div class="fx">'+r.fx+'</div></div>'+
+      '<div class="badges"><span class="bdg imp-'+r.imp+'">'+(r.imp==="h"?"HIGH IMPACT":"MEDIUM IMPACT")+'</span>'+
+      '<span class="bdg eff-'+r.eff+'">'+(r.eff==="l"?"LOW EFFORT":"MEDIUM EFFORT")+'</span></div></div>';
+  }).join("");
+
+  document.getElementById("p-imp").innerHTML =
+    '<div class="secthd"><span class="n">01</span><h2>Where things get missed today</h2>'+
+      '<span class="sd">observed in the current data</span></div>'+
+    '<div class="gap">'+pains+'</div>'+
+
+    '<div class="secthd"><span class="n">02</span><h2>How email and tasks would flow</h2>'+
+      '<span class="sd">Microsoft 365 · Power Automate · Planner</span></div>'+
+    '<div class="flowbox"><div class="flowscroll">'+flow+'</div><div class="flowhint">no new platform, no server — built on tools already licensed with Microsoft 365</div></div>'+
+
+    '<div class="secthd"><span class="n">03</span><h2>What lands in the manager\u2019s inbox</h2>'+
+      '<span class="sd">one email, 07:30, every weekday</span></div>'+
+    mail+
+
+    '<div class="secthd"><span class="n">04</span><h2>How the board is organised</h2>'+
+      '<span class="sd">plans by work type · region as a label</span></div>'+
+    '<div class="kplans">'+plans+'</div>'+
+    '<div class="kb">'+kcols+'</div>'+
+
+    '<div class="secthd"><span class="n">05</span><h2>Improvements, ranked</h2>'+
+      '<span class="sd">by impact against effort</span></div>'+
+    recs;
+}
+
+/* --- tabs --- */
+var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+tabs.forEach(function(t){
+  t.addEventListener("click", function(){
+    tabs.forEach(function(x){ x.setAttribute("aria-selected","false"); });
+    t.setAttribute("aria-selected","true");
+    document.querySelectorAll(".panel").forEach(function(p){ p.classList.remove("on"); });
+    document.getElementById(t.getAttribute("aria-controls")).classList.add("on");
+  });
+  t.addEventListener("keydown", function(e){
+    var i = tabs.indexOf(t), n = tabs.length;
+    if(e.key==="ArrowRight"){ tabs[(i+1)%n].focus(); tabs[(i+1)%n].click(); }
+    if(e.key==="ArrowLeft"){ tabs[(i-1+n)%n].focus(); tabs[(i-1+n)%n].click(); }
+  });
+});
+
+/* --- boot --- */
+document.getElementById("todayDate").textContent =
+  new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+renderStrip();
+RK.forEach(renderRegion);
+renderToday();
+renderProjects();
+renderImprove();
+</script>
+</body>
+</html>
